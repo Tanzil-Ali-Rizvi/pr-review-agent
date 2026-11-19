@@ -138,6 +138,7 @@ async def run_case(case: Case, llm) -> dict[str, Any]:
         "llm_calls": full.llm_calls, "tokens": full.tokens, "cost_usd": full.cost_usd,
         "llm_ms": round(full.llm_ms, 1), "wall_ms": round((time.perf_counter() - t0) * 1000, 1),
         "errors": full.errors,
+        "dropped": [{"line": f.line, "title": f.title, "reason": why} for f, why in full.dropped],
     }  # fmt: skip
     return row
 
