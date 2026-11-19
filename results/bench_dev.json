@@ -35,10 +35,10 @@
     "recall": 1.0,
     "caught": 6,
     "high_recall": 1.0,
-    "precision": 0.8,
-    "comments": 10,
-    "false_alarms": 2,
-    "clean_prs_flagged": 2,
+    "precision": 0.667,
+    "comments": 9,
+    "false_alarms": 3,
+    "clean_prs_flagged": 1,
     "by_category": {
      "security": {
       "n": 2,
@@ -62,10 +62,10 @@
     "recall": 1.0,
     "caught": 6,
     "high_recall": 1.0,
-    "precision": 0.8,
-    "comments": 10,
-    "false_alarms": 2,
-    "clean_prs_flagged": 2,
+    "precision": 0.667,
+    "comments": 9,
+    "false_alarms": 3,
+    "clean_prs_flagged": 1,
     "by_category": {
      "security": {
       "n": 2,
@@ -86,10 +86,10 @@
     }
    }
   },
-  "cost_usd": 0.0053,
-  "cost_per_pr": 0.00066,
-  "tokens": 15904,
-  "llm_ms_p50": 2348,
+  "cost_usd": 0.005,
+  "cost_per_pr": 0.00063,
+  "tokens": 15776,
+  "llm_ms_p50": 2330,
   "model": "openai/gpt-oss-120b (Groq) via llm-gateway",
   "split": "dev"
  },
@@ -105,31 +105,37 @@
     "llm": [
      {
       "path": "billing/invoice.py",
-      "line": 3,
+      "line": 1,
       "severity": "medium",
       "category": "correctness",
-      "title": "KeyError on missing dict fields",
+      "title": "Removed public function breaks callers",
+      "explanation": "The original `calc` function is deleted and renamed to `invoice_total`. Existing code that imports or calls `calc` will raise a NameError at runtime.",
+      "suggestion": "Add a wrapper `def calc(items, r): return invoice_total(items, r)` or keep the old name as an alias.",
       "source": "llm",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm+verify": [
      {
       "path": "billing/invoice.py",
-      "line": 3,
+      "line": 1,
       "severity": "medium",
       "category": "correctness",
-      "title": "KeyError on missing dict fields",
+      "title": "Removed public function breaks callers",
+      "explanation": "The original `calc` function is deleted and renamed to `invoice_total`. Existing code that imports or calls `calc` will raise a NameError at runtime.",
+      "suggestion": "Add a wrapper `def calc(items, r): return invoice_total(items, r)` or keep the old name as an alias.",
       "source": "llm",
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "verdict_reason": "The original public function calc is removed and renamed, so existing callers using calc will get a NameError."
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1628,
-   "cost_usd": 0.000534,
-   "llm_ms": 1987.3,
-   "wall_ms": 2132.3,
+   "tokens": 1913,
+   "cost_usd": 0.000608,
+   "llm_ms": 2124.9,
+   "wall_ms": 2290.5,
    "errors": []
   },
   {
@@ -146,38 +152,21 @@
       "severity": "medium",
       "category": "security",
       "title": "Possible SQL injection vector through string-based query construction.",
+      "explanation": "bandit B608: Possible SQL injection vector through string-based query construction.",
+      "suggestion": "",
       "source": "linter",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
-    "llm": [
-     {
-      "path": "billing/queries.py",
-      "line": 19,
-      "severity": "high",
-      "category": "correctness",
-      "title": "Indentation error causes SyntaxError",
-      "source": "llm",
-      "verdict": ""
-     }
-    ],
-    "llm+verify": [
-     {
-      "path": "billing/queries.py",
-      "line": 19,
-      "severity": "high",
-      "category": "correctness",
-      "title": "Indentation error causes SyntaxError",
-      "source": "llm",
-      "verdict": "confirmed"
-     }
-    ]
+    "llm": [],
+    "llm+verify": []
    },
-   "llm_calls": 2,
-   "tokens": 2621,
-   "cost_usd": 0.00093,
-   "llm_ms": 3050.6,
-   "wall_ms": 3187.3,
+   "llm_calls": 1,
+   "tokens": 1369,
+   "cost_usd": 0.000387,
+   "llm_ms": 1251.4,
+   "wall_ms": 1417.6,
    "errors": []
   },
   {
@@ -191,31 +180,61 @@
     "llm": [
      {
       "path": "orders/listing.py",
-      "line": 6,
+      "line": 1,
       "severity": "medium",
       "category": "correctness",
-      "title": "Off‑by‑one slice drops last item",
+      "title": "Function signature change may break callers",
+      "explanation": "The function now returns a dict instead of a list; existing code that expects a list of orders will raise TypeError or attribute errors when accessing the result.",
+      "suggestion": "Update callers to handle the new dict format or keep backward‑compatible overload returning the list when needed",
       "source": "llm",
-      "verdict": ""
-     }
-    ],
-    "llm+verify": [
+      "verdict": "",
+      "verdict_reason": ""
+     },
      {
       "path": "orders/listing.py",
       "line": 6,
       "severity": "medium",
       "category": "correctness",
-      "title": "Off‑by‑one slice drops last item",
+      "title": "Off‑by‑one slice excludes last item",
+      "explanation": "The slice uses start + size - 1, returning only size‑1 elements per page, so the last order on each page is omitted.",
+      "suggestion": "Change to ordered[start:start+size]",
       "source": "llm",
-      "verdict": "confirmed"
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "orders/listing.py",
+      "line": 1,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Function signature change may break callers",
+      "explanation": "The function now returns a dict instead of a list; existing code that expects a list of orders will raise TypeError or attribute errors when accessing the result.",
+      "suggestion": "Update callers to handle the new dict format or keep backward‑compatible overload returning the list when needed",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "return type changed from list to dict, breaking existing callers"
+     },
+     {
+      "path": "orders/listing.py",
+      "line": 6,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Off‑by‑one slice excludes last item",
+      "explanation": "The slice uses start + size - 1, returning only size‑1 elements per page, so the last order on each page is omitted.",
+      "suggestion": "Change to ordered[start:start+size]",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "slice end should be start+size, size-1 drops one item"
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1681,
-   "cost_usd": 0.000499,
-   "llm_ms": 2083.2,
-   "wall_ms": 2220.2,
+   "tokens": 2276,
+   "cost_usd": 0.000753,
+   "llm_ms": 2534.2,
+   "wall_ms": 2699.9,
    "errors": []
   },
   {
@@ -232,9 +251,12 @@
       "line": 6,
       "severity": "high",
       "category": "correctness",
-      "title": "Free shipping condition reversed",
+      "title": "Free shipping condition inverted",
+      "explanation": "The code returns 0 (free shipping) when order_total is less than FREE_SHIPPING_FROM, but the intended rule is free shipping for orders of 999 or more. This causes low-value orders to ship free and high-value orders to be charged, leading to revenue loss.",
+      "suggestion": "Change the comparison to `if order_total >= FREE_SHIPPING_FROM:` and swap the return values accordingly.",
       "source": "llm",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm+verify": [
@@ -243,17 +265,20 @@
       "line": 6,
       "severity": "high",
       "category": "correctness",
-      "title": "Free shipping condition reversed",
+      "title": "Free shipping condition inverted",
+      "explanation": "The code returns 0 (free shipping) when order_total is less than FREE_SHIPPING_FROM, but the intended rule is free shipping for orders of 999 or more. This causes low-value orders to ship free and high-value orders to be charged, leading to revenue loss.",
+      "suggestion": "Change the comparison to `if order_total >= FREE_SHIPPING_FROM:` and swap the return values accordingly.",
       "source": "llm",
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "verdict_reason": "The added condition returns 0 for orders below the threshold, reversing the intended free‑shipping rule."
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1591,
-   "cost_usd": 0.000512,
-   "llm_ms": 1914.6,
-   "wall_ms": 2053.2,
+   "tokens": 1736,
+   "cost_usd": 0.000538,
+   "llm_ms": 1626.8,
+   "wall_ms": 1798.8,
    "errors": []
   },
   {
@@ -268,30 +293,36 @@
      {
       "path": "exports/orders_csv.py",
       "line": 11,
-      "severity": "high",
-      "category": "correctness",
-      "title": "Dict-style row access may crash",
+      "severity": "medium",
+      "category": "performance",
+      "title": "N+1 query per order",
+      "explanation": "For each order row the code runs a separate SELECT to fetch the customer name, causing O(N) database queries which can severely degrade export performance on large datasets.",
+      "suggestion": "Fetch customer names in a single query (e.g., join customers in the original SELECT) and avoid per‑row queries.",
       "source": "llm",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm+verify": [
      {
       "path": "exports/orders_csv.py",
       "line": 11,
-      "severity": "high",
-      "category": "correctness",
-      "title": "Dict-style row access may crash",
+      "severity": "medium",
+      "category": "performance",
+      "title": "N+1 query per order",
+      "explanation": "For each order row the code runs a separate SELECT to fetch the customer name, causing O(N) database queries which can severely degrade export performance on large datasets.",
+      "suggestion": "Fetch customer names in a single query (e.g., join customers in the original SELECT) and avoid per‑row queries.",
       "source": "llm",
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "verdict_reason": "Adds a per‑order SELECT for the customer name, turning a single query into N+1 queries and hurting performance."
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 2199,
-   "cost_usd": 0.000777,
-   "llm_ms": 2613.8,
-   "wall_ms": 2753.8,
+   "tokens": 2197,
+   "cost_usd": 0.000705,
+   "llm_ms": 2017.6,
+   "wall_ms": 2181.5,
    "errors": []
   },
   {
@@ -308,8 +339,11 @@
       "severity": "medium",
       "category": "security",
       "title": "Call to requests without timeout",
+      "explanation": "bandit B113: Call to requests without timeout",
+      "suggestion": "",
       "source": "linter",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm": [
@@ -317,19 +351,25 @@
       "path": "jobs/rates.py",
       "line": 11,
       "severity": "medium",
-      "category": "performance",
-      "title": "requests call lacks timeout",
+      "category": "reliability",
+      "title": "requests call missing timeout",
+      "explanation": "If the central bank endpoint hangs, requests.get will block indefinitely, stalling the worker and potentially exhausting thread pools.",
+      "suggestion": "Add a timeout argument, e.g., requests.get(RATES_URL, timeout=10)",
       "source": "llm",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      },
      {
       "path": "jobs/rates.py",
-      "line": 13,
-      "severity": "high",
-      "category": "correctness",
-      "title": "unvalidated payload may raise KeyError",
+      "line": 12,
+      "severity": "medium",
+      "category": "reliability",
+      "title": "unhandled HTTP errors may crash worker",
+      "explanation": "raise_for_status() will raise an exception on non‑2xx responses; without a try/except the job will terminate and may be retried endlessly.",
+      "suggestion": "Wrap the request in try/except and handle requests.exceptions.HTTPError appropriately",
       "source": "llm",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm+verify": [
@@ -337,27 +377,33 @@
       "path": "jobs/rates.py",
       "line": 11,
       "severity": "medium",
-      "category": "performance",
-      "title": "requests call lacks timeout",
+      "category": "reliability",
+      "title": "requests call missing timeout",
+      "explanation": "If the central bank endpoint hangs, requests.get will block indefinitely, stalling the worker and potentially exhausting thread pools.",
+      "suggestion": "Add a timeout argument, e.g., requests.get(RATES_URL, timeout=10)",
       "source": "llm",
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "verdict_reason": "requests.get lacks a timeout, so a hanging endpoint can block indefinitely"
      },
      {
       "path": "jobs/rates.py",
-      "line": 13,
-      "severity": "high",
-      "category": "correctness",
-      "title": "unvalidated payload may raise KeyError",
+      "line": 12,
+      "severity": "medium",
+      "category": "reliability",
+      "title": "unhandled HTTP errors may crash worker",
+      "explanation": "raise_for_status() will raise an exception on non‑2xx responses; without a try/except the job will terminate and may be retried endlessly.",
+      "suggestion": "Wrap the request in try/except and handle requests.exceptions.HTTPError appropriately",
       "source": "llm",
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "verdict_reason": "raise_for_status() can raise on non‑2xx responses and is not caught, potentially crashing the worker"
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1925,
-   "cost_usd": 0.000613,
-   "llm_ms": 2077.8,
-   "wall_ms": 2215.9,
+   "tokens": 2502,
+   "cost_usd": 0.000908,
+   "llm_ms": 3016.7,
+   "wall_ms": 3181.4,
    "errors": []
   },
   {
@@ -374,8 +420,11 @@
       "severity": "medium",
       "category": "security",
       "title": "Possible SQL injection vector through string-based query construction.",
+      "explanation": "bandit B608: Possible SQL injection vector through string-based query construction.",
+      "suggestion": "",
       "source": "linter",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm": [
@@ -384,9 +433,12 @@
       "line": 10,
       "severity": "high",
       "category": "security",
-      "title": "SQL injection via prefix",
+      "title": "SQL injection via unsanitized prefix",
+      "explanation": "The f-string inserts the raw `prefix` directly into the SQL query, allowing an attacker to inject malicious SQL (e.g., a prefix containing \"' OR 1=1 --\"). This can be triggered by any caller that supplies a crafted prefix.",
+      "suggestion": "Use a parameterized query: `query = \"SELECT id, name, email FROM users WHERE name LIKE ? ORDER BY name LIMIT ?\"` and pass `(prefix + \"%\", limit)` to `execute`.",
       "source": "llm",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm+verify": [
@@ -395,17 +447,20 @@
       "line": 10,
       "severity": "high",
       "category": "security",
-      "title": "SQL injection via prefix",
+      "title": "SQL injection via unsanitized prefix",
+      "explanation": "The f-string inserts the raw `prefix` directly into the SQL query, allowing an attacker to inject malicious SQL (e.g., a prefix containing \"' OR 1=1 --\"). This can be triggered by any caller that supplies a crafted prefix.",
+      "suggestion": "Use a parameterized query: `query = \"SELECT id, name, email FROM users WHERE name LIKE ? ORDER BY name LIMIT ?\"` and pass `(prefix + \"%\", limit)` to `execute`.",
       "source": "llm",
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "verdict_reason": "The f‑string embeds the raw prefix into the SQL, creating a classic injection vector, and this function is new in the PR."
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1690,
-   "cost_usd": 0.000465,
-   "llm_ms": 5610.8,
-   "wall_ms": 5790.9,
+   "tokens": 1912,
+   "cost_usd": 0.000542,
+   "llm_ms": 8886.9,
+   "wall_ms": 9051.9,
    "errors": []
   },
   {
@@ -422,8 +477,11 @@
       "severity": "high",
       "category": "security",
       "title": "Probable use of unsafe loader `Loader` with `yaml.load`. Allows instantiation of arbitrary objects. Consider `yaml.safe_",
+      "explanation": "ruff S506: Probable use of unsafe loader `Loader` with `yaml.load`. Allows instantiation of arbitrary objects. Consider `yaml.safe_load`.",
+      "suggestion": "",
       "source": "linter",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm": [
@@ -432,18 +490,12 @@
       "line": 8,
       "severity": "high",
       "category": "security",
-      "title": "Unsafe yaml.load usage",
+      "title": "Unsafe yaml.load enables code execution",
+      "explanation": "The code uses yaml.load with yaml.Loader on user‑provided data, which can instantiate arbitrary Python objects. An attacker can upload a crafted YAML file to execute code on the server.",
+      "suggestion": "Replace yaml.load with yaml.safe_load (or yaml.load with SafeLoader) to restrict object construction.",
       "source": "llm",
-      "verdict": ""
-     },
-     {
-      "path": "pipelines/config.py",
-      "line": 10,
-      "severity": "high",
-      "category": "reliability",
-      "title": "Indentation error causes crash",
-      "source": "llm",
-      "verdict": ""
+      "verdict": "",
+      "verdict_reason": ""
      }
     ],
     "llm+verify": [
@@ -452,26 +504,20 @@
       "line": 8,
       "severity": "high",
       "category": "security",
-      "title": "Unsafe yaml.load usage",
+      "title": "Unsafe yaml.load enables code execution",
+      "explanation": "The code uses yaml.load with yaml.Loader on user‑provided data, which can instantiate arbitrary Python objects. An attacker can upload a crafted YAML file to execute code on the server.",
+      "suggestion": "Replace yaml.load with yaml.safe_load (or yaml.load with SafeLoader) to restrict object construction.",
       "source": "llm",
-      "verdict": "confirmed"
-     },
-     {
-      "path": "pipelines/config.py",
-      "line": 10,
-      "severity": "high",
-      "category": "reliability",
-      "title": "Indentation error causes crash",
-      "source": "llm",
-      "verdict": "confirmed"
+      "verdict": "confirmed",
+      "verdict_reason": "yaml.load with yaml.Loader is unsafe and can execute arbitrary code"
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 2569,
-   "cost_usd": 0.001,
-   "llm_ms": 9611.6,
-   "wall_ms": 9756.5,
+   "tokens": 1871,
+   "cost_usd": 0.000538,
+   "llm_ms": 9847.9,
+   "wall_ms": 10015.0,
    "errors": []
   }
  ]
