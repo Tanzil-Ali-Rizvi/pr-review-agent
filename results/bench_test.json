@@ -1,0 +1,1896 @@
+{
+ "summary": {
+  "cases": 35,
+  "bug_cases": 27,
+  "clean_cases": 8,
+  "systems": {
+   "linters": {
+    "recall": 0.444,
+    "caught": 12,
+    "high_recall": 0.571,
+    "precision": 0.867,
+    "comments": 15,
+    "false_alarms": 2,
+    "clean_prs_flagged": 1,
+    "by_category": {
+     "security": {
+      "n": 9,
+      "caught": 7
+     },
+     "correctness": {
+      "n": 10,
+      "caught": 4
+     },
+     "performance": {
+      "n": 4,
+      "caught": 0
+     },
+     "reliability": {
+      "n": 4,
+      "caught": 1
+     }
+    }
+   },
+   "llm": {
+    "recall": 0.926,
+    "caught": 25,
+    "high_recall": 1.0,
+    "precision": 0.65,
+    "comments": 40,
+    "false_alarms": 14,
+    "clean_prs_flagged": 5,
+    "by_category": {
+     "security": {
+      "n": 9,
+      "caught": 9
+     },
+     "correctness": {
+      "n": 10,
+      "caught": 10
+     },
+     "performance": {
+      "n": 4,
+      "caught": 2
+     },
+     "reliability": {
+      "n": 4,
+      "caught": 4
+     }
+    }
+   },
+   "llm+verify": {
+    "recall": 0.889,
+    "caught": 24,
+    "high_recall": 1.0,
+    "precision": 0.694,
+    "comments": 36,
+    "false_alarms": 11,
+    "clean_prs_flagged": 4,
+    "by_category": {
+     "security": {
+      "n": 9,
+      "caught": 9
+     },
+     "correctness": {
+      "n": 10,
+      "caught": 9
+     },
+     "performance": {
+      "n": 4,
+      "caught": 2
+     },
+     "reliability": {
+      "n": 4,
+      "caught": 4
+     }
+    }
+   }
+  },
+  "cost_usd": 0.0231,
+  "cost_per_pr": 0.00066,
+  "tokens": 74070,
+  "llm_ms_p50": 7865,
+  "model": "openai/gpt-oss-120b (Groq) via llm-gateway",
+  "split": "test"
+ },
+ "rows": [
+  {
+   "id": "clean-type-hints-helper",
+   "split": "test",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [],
+    "llm": [],
+    "llm+verify": []
+   },
+   "llm_calls": 1,
+   "tokens": 1536,
+   "cost_usd": 0.000539,
+   "llm_ms": 2155.6,
+   "wall_ms": 2352.3,
+   "errors": []
+  },
+  {
+   "id": "clean-subprocess-list",
+   "split": "test",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [
+     {
+      "path": "ops/backup.py",
+      "line": 13,
+      "severity": "medium",
+      "category": "security",
+      "title": "`subprocess` call: check for execution of untrusted input",
+      "explanation": "ruff S603: `subprocess` call: check for execution of untrusted input",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "ops/backup.py",
+      "line": 13,
+      "severity": "high",
+      "category": "security",
+      "title": "Untrusted executable path",
+      "explanation": "The subprocess runs \"gzip\" without an absolute path, so a malicious executable earlier in the PATH could be executed, leading to code execution if an attacker can influence the environment.",
+      "suggestion": "Use the full path to gzip (e.g., /usr/bin/gzip) or validate the executable before running.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "ops/backup.py",
+      "line": 13,
+      "severity": "high",
+      "category": "security",
+      "title": "Untrusted executable path",
+      "explanation": "The subprocess runs \"gzip\" without an absolute path, so a malicious executable earlier in the PATH could be executed, leading to code execution if an attacker can influence the environment.",
+      "suggestion": "Use the full path to gzip (e.g., /usr/bin/gzip) or validate the executable before running.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "Running \"gzip\" via PATH allows a malicious executable to be invoked if the environment is compromised"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2888,
+   "cost_usd": 0.001089,
+   "llm_ms": 3521.9,
+   "wall_ms": 3690.4,
+   "errors": []
+  },
+  {
+   "id": "clean-logging-comprehension",
+   "split": "test",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "etl/importer.py",
+      "line": 12,
+      "severity": "medium",
+      "category": "reliability",
+      "title": "Assumes rows is a sized sequence",
+      "explanation": "If callers pass a generator or other iterator instead of a list, len(rows) raises TypeError, causing the importer to crash when processing rows.",
+      "suggestion": "Iterate over rows once, counting kept and skipped items (e.g., using a loop) or convert rows to a list after checking its type.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": []
+   },
+   "llm_calls": 2,
+   "tokens": 2476,
+   "cost_usd": 0.000816,
+   "llm_ms": 2988.4,
+   "wall_ms": 3157.7,
+   "errors": []
+  },
+  {
+   "id": "clean-add-tests",
+   "split": "test",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [],
+    "llm": [],
+    "llm+verify": []
+   },
+   "llm_calls": 1,
+   "tokens": 1079,
+   "cost_usd": 0.000277,
+   "llm_ms": 1170.0,
+   "wall_ms": 1335.8,
+   "errors": []
+  },
+  {
+   "id": "clean-timeout-raise",
+   "split": "test",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "geo/lookup.py",
+      "line": 10,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Silent None return may cause downstream crashes",
+      "explanation": "When the API returns no results, the function returns None instead of raising or returning a consistent dict. Callers expecting a dict may later dereference None, causing TypeError at runtime.",
+      "suggestion": "Raise a specific exception for empty results or clearly document that callers must handle None",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "geo/lookup.py",
+      "line": 10,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Silent None return may cause downstream crashes",
+      "explanation": "When the API returns no results, the function returns None instead of raising or returning a consistent dict. Callers expecting a dict may later dereference None, causing TypeError at runtime.",
+      "suggestion": "Raise a specific exception for empty results or clearly document that callers must handle None",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "Returning None on empty results can lead to TypeError later if callers assume a dict"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2197,
+   "cost_usd": 0.000687,
+   "llm_ms": 2285.2,
+   "wall_ms": 2457.9,
+   "errors": []
+  },
+  {
+   "id": "clean-lru-cache",
+   "split": "test",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [],
+    "llm": [],
+    "llm+verify": []
+   },
+   "llm_calls": 1,
+   "tokens": 1219,
+   "cost_usd": 0.000369,
+   "llm_ms": 1103.3,
+   "wall_ms": 1265.8,
+   "errors": []
+  },
+  {
+   "id": "clean-env-config",
+   "split": "test",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "app/settings.py",
+      "line": 9,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Invalid PAGE_SIZE causes crash",
+      "explanation": "If APP_PAGE_SIZE is set to a non‑numeric string, int() raises ValueError during module import, aborting the application start-up.",
+      "suggestion": "Validate the value and fallback to the default or raise a clear configuration error.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "app/settings.py",
+      "line": 10,
+      "severity": "high",
+      "category": "reliability",
+      "title": "Missing DATABASE_URL crashes import",
+      "explanation": "Accessing os.environ[\"DATABASE_URL\"] raises KeyError when the variable is absent, causing the whole module import to fail and the service to crash at start‑up.",
+      "suggestion": "Use os.getenv with an explicit error message or handle the missing case gracefully.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "app/settings.py",
+      "line": 9,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Invalid PAGE_SIZE causes crash",
+      "explanation": "If APP_PAGE_SIZE is set to a non‑numeric string, int() raises ValueError during module import, aborting the application start-up.",
+      "suggestion": "Validate the value and fallback to the default or raise a clear configuration error.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "int() on a non‑numeric env var raises ValueError at import"
+     },
+     {
+      "path": "app/settings.py",
+      "line": 10,
+      "severity": "high",
+      "category": "reliability",
+      "title": "Missing DATABASE_URL crashes import",
+      "explanation": "Accessing os.environ[\"DATABASE_URL\"] raises KeyError when the variable is absent, causing the whole module import to fail and the service to crash at start‑up.",
+      "suggestion": "Use os.getenv with an explicit error message or handle the missing case gracefully.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "os.environ[...] raises KeyError if DATABASE_URL is unset"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2304,
+   "cost_usd": 0.00076,
+   "llm_ms": 5384.1,
+   "wall_ms": 5547.4,
+   "errors": []
+  },
+  {
+   "id": "clean-dataclass-refactor",
+   "split": "test",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "billing/lines.py",
+      "line": 12,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Negative quantity now raises error",
+      "explanation": "Previously a negative qty would produce a negative total; the new validation raises ValueError, potentially crashing code that inadvertently supplies negative quantities.",
+      "suggestion": "Ensure callers validate qty before constructing LineItem or handle the exception gracefully.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "billing/lines.py",
+      "line": 14,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Discount validation too strict",
+      "explanation": "The new __post_init__ rejects discount values equal to 1.0, which previously resulted in a total of zero; existing data with a full discount will now raise ValueError, breaking processing.",
+      "suggestion": "Allow discount == 1.0 or handle full discount case explicitly.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "billing/lines.py",
+      "line": 18,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "API change breaks dict callers",
+      "explanation": "line_total now expects a LineItem object; existing code that passes a dict will raise AttributeError when accessing .qty, .unit_price, or .discount, causing runtime errors.",
+      "suggestion": "Keep backward compatibility by accepting both dicts and LineItem or provide a wrapper function.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "billing/lines.py",
+      "line": 12,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Negative quantity now raises error",
+      "explanation": "Previously a negative qty would produce a negative total; the new validation raises ValueError, potentially crashing code that inadvertently supplies negative quantities.",
+      "suggestion": "Ensure callers validate qty before constructing LineItem or handle the exception gracefully.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "Negative qty now raises ValueError, whereas the old implementation would compute a negative total"
+     },
+     {
+      "path": "billing/lines.py",
+      "line": 14,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Discount validation too strict",
+      "explanation": "The new __post_init__ rejects discount values equal to 1.0, which previously resulted in a total of zero; existing data with a full discount will now raise ValueError, breaking processing.",
+      "suggestion": "Allow discount == 1.0 or handle full discount case explicitly.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "__post_init__ now rejects discount==1.0, whereas the previous function allowed it and produced zero total"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2970,
+   "cost_usd": 0.001051,
+   "llm_ms": 11853.1,
+   "wall_ms": 12017.1,
+   "errors": []
+  },
+  {
+   "id": "cor-mutable-default",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [
+     {
+      "path": "forms/validate.py",
+      "line": 5,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Do not use mutable data structures for argument defaults",
+      "explanation": "ruff B006: Do not use mutable data structures for argument defaults",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "forms/validate.py",
+      "line": 5,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Mutable default argument shares state",
+      "explanation": "The default errors list is created once at function definition, so successive calls to validate_form without providing an errors list will keep appending to the same list, causing stale errors to appear and potentially leaking data between requests.",
+      "suggestion": "Change the default to None and initialize a new list inside the function (e.g., errors=None; if errors is None: errors = []).",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "forms/validate.py",
+      "line": 5,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Mutable default argument shares state",
+      "explanation": "The default errors list is created once at function definition, so successive calls to validate_form without providing an errors list will keep appending to the same list, causing stale errors to appear and potentially leaking data between requests.",
+      "suggestion": "Change the default to None and initialize a new list inside the function (e.g., errors=None; if errors is None: errors = []).",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "The function uses a mutable default list, causing shared state across calls, and this was introduced in the added code."
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1923,
+   "cost_usd": 0.00056,
+   "llm_ms": 13534.7,
+   "wall_ms": 13699.1,
+   "errors": []
+  },
+  {
+   "id": "cor-is-literal",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [
+     {
+      "path": "projects/sidebar.py",
+      "line": 6,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Use `==` to compare constant literals",
+      "explanation": "ruff F632: Use `==` to compare constant literals",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "projects/sidebar.py",
+      "line": 6,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Improper string comparison with 'is'",
+      "explanation": "Using `is` to compare `p.get(\"status\")` with the literal \"archived\" checks identity, not equality. If the status string is not the same interned object, archived projects won't be filtered and will appear in the sidebar.",
+      "suggestion": "Replace `is` with `==` for value comparison.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "projects/sidebar.py",
+      "line": 6,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Improper string comparison with 'is'",
+      "explanation": "Using `is` to compare `p.get(\"status\")` with the literal \"archived\" checks identity, not equality. If the status string is not the same interned object, archived projects won't be filtered and will appear in the sidebar.",
+      "suggestion": "Replace `is` with `==` for value comparison.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "Using 'is' for string equality may fail, so archived projects might not be filtered"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1810,
+   "cost_usd": 0.000506,
+   "llm_ms": 3588.6,
+   "wall_ms": 3750.6,
+   "errors": []
+  },
+  {
+   "id": "cor-floor-average",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "catalog/ratings.py",
+      "line": 8,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Integer division truncates average",
+      "explanation": "average_rating uses // which performs floor division, dropping the fractional part (e.g., [4,5] yields 4 instead of 4.5). This yields incorrect star ratings for typical inputs.",
+      "suggestion": "Replace // with / to compute a true float average.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "catalog/ratings.py",
+      "line": 8,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Integer division truncates average",
+      "explanation": "average_rating uses // which performs floor division, dropping the fractional part (e.g., [4,5] yields 4 instead of 4.5). This yields incorrect star ratings for typical inputs.",
+      "suggestion": "Replace // with / to compute a true float average.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "average_rating uses // causing truncation of the true average"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2038,
+   "cost_usd": 0.000613,
+   "llm_ms": 13992.1,
+   "wall_ms": 14158.0,
+   "errors": []
+  },
+  {
+   "id": "cor-naive-local-time",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [
+     {
+      "path": "auth/tokens.py",
+      "line": 14,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "`datetime.datetime.now()` called without a `tz` argument",
+      "explanation": "ruff DTZ005: `datetime.datetime.now()` called without a `tz` argument",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "auth/tokens.py",
+      "line": 14,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Naive datetime.now used for UTC comparison",
+      "explanation": "datetime.now() returns a naive local time, but expires_at is stored as UTC. On servers not set to UTC this can cause tokens to be considered expired or valid incorrectly.",
+      "suggestion": "Use datetime.now(timezone.utc) or datetime.utcnow() for comparison.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": []
+   },
+   "llm_calls": 2,
+   "tokens": 2341,
+   "cost_usd": 0.000763,
+   "llm_ms": 9289.5,
+   "wall_ms": 9459.1,
+   "errors": []
+  },
+  {
+   "id": "cor-late-binding",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [
+     {
+      "path": "hooks/registry.py",
+      "line": 11,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Function definition does not bind loop variable `name`",
+      "explanation": "ruff B023: Function definition does not bind loop variable `name`",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "hooks/registry.py",
+      "line": 11,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Late-binding lambda captures loop variable",
+      "explanation": "All handlers in the returned dict will use the final value of `name` ('order.refunded') because the lambda closes over the loop variable. Any dispatched event will be reported with the wrong event name, causing incorrect processing.",
+      "suggestion": "Bind the current name in the lambda default argument, e.g., `handlers[name] = lambda payload, name=name: handle(name, payload)`, or use `functools.partial`.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "hooks/registry.py",
+      "line": 11,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Late-binding lambda captures loop variable",
+      "explanation": "All handlers in the returned dict will use the final value of `name` ('order.refunded') because the lambda closes over the loop variable. Any dispatched event will be reported with the wrong event name, causing incorrect processing.",
+      "suggestion": "Bind the current name in the lambda default argument, e.g., `handlers[name] = lambda payload, name=name: handle(name, payload)`, or use `functools.partial`.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "The lambda captures the loop variable causing all handlers to use the final event name"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2067,
+   "cost_usd": 0.000647,
+   "llm_ms": 4326.2,
+   "wall_ms": 4489.0,
+   "errors": []
+  },
+  {
+   "id": "cor-remove-while-iterating",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "shop/expiry.py",
+      "line": 14,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Removing items while iterating",
+      "explanation": "Iterating over `items` and calling `items.remove(item)` mutates the list during iteration, causing some expired entries to be skipped and remain in the cart.",
+      "suggestion": "Iterate over a copy (e.g., `for item in items[:]`) or build a filtered list and return it.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "shop/expiry.py",
+      "line": 14,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Removing items while iterating",
+      "explanation": "Iterating over `items` and calling `items.remove(item)` mutates the list during iteration, causing some expired entries to be skipped and remain in the cart.",
+      "suggestion": "Iterate over a copy (e.g., `for item in items[:]`) or build a filtered list and return it.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "Removing items while iterating can skip elements, causing some expired items to remain"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2069,
+   "cost_usd": 0.000625,
+   "llm_ms": 9016.0,
+   "wall_ms": 9196.2,
+   "errors": []
+  },
+  {
+   "id": "cor-default-now",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [
+     {
+      "path": "audit/log.py",
+      "line": 9,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Do not perform function call `datetime.now` in argument defaults; instead, perform the call within the function, or read",
+      "explanation": "ruff B008: Do not perform function call `datetime.now` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "audit/log.py",
+      "line": 9,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Stale timestamp from default argument",
+      "explanation": "The default value for `at` is evaluated when the module is imported, so every call to `audit_entry` without an explicit timestamp uses the same datetime, producing incorrect audit logs.",
+      "suggestion": "Change the signature to `def audit_entry(actor: str, action: str, at: datetime | None = None):` and set `at = at or datetime.now(timezone.utc)` inside the function.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "audit/log.py",
+      "line": 9,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Stale timestamp from default argument",
+      "explanation": "The default value for `at` is evaluated when the module is imported, so every call to `audit_entry` without an explicit timestamp uses the same datetime, producing incorrect audit logs.",
+      "suggestion": "Change the signature to `def audit_entry(actor: str, action: str, at: datetime | None = None):` and set `at = at or datetime.now(timezone.utc)` inside the function.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "default datetime evaluated at import time gives same timestamp for all calls"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1821,
+   "cost_usd": 0.000509,
+   "llm_ms": 7865.2,
+   "wall_ms": 8027.2,
+   "errors": []
+  },
+  {
+   "id": "cor-percent-change",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "dashboard/metrics.py",
+      "line": 8,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Incorrect percent change formula",
+      "explanation": "The function divides by the current value instead of the previous value, producing inverted or misleading week‑over‑week percentages for normal revenue data.",
+      "suggestion": "Change the denominator to `previous` (i.e., `(current - previous) / previous * 100`).",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "dashboard/metrics.py",
+      "line": 8,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Incorrect percent change formula",
+      "explanation": "The function divides by the current value instead of the previous value, producing inverted or misleading week‑over‑week percentages for normal revenue data.",
+      "suggestion": "Change the denominator to `previous` (i.e., `(current - previous) / previous * 100`).",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "The function uses current as denominator instead of previous, yielding incorrect percent change."
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2432,
+   "cost_usd": 0.000813,
+   "llm_ms": 9778.7,
+   "wall_ms": 9943.1,
+   "errors": []
+  },
+  {
+   "id": "cor-missing-branch",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "high",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "loyalty/pricing.py",
+      "line": 9,
+      "severity": "high",
+      "category": "correctness",
+      "title": "tier_discount may return None causing TypeError",
+      "explanation": "When tier is not 'gold' or 'silver' (e.g., default 'bronze'), tier_discount returns None. final_price then computes price * (1 - None), raising a TypeError and crashing the service.",
+      "suggestion": "Add an else clause in tier_discount to return 0.0 for unknown tiers or raise a clear exception.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "loyalty/pricing.py",
+      "line": 9,
+      "severity": "high",
+      "category": "correctness",
+      "title": "tier_discount may return None causing TypeError",
+      "explanation": "When tier is not 'gold' or 'silver' (e.g., default 'bronze'), tier_discount returns None. final_price then computes price * (1 - None), raising a TypeError and crashing the service.",
+      "suggestion": "Add an else clause in tier_discount to return 0.0 for unknown tiers or raise a clear exception.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "tier_discount lacks a default case, returns None for bronze causing TypeError in final_price"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2015,
+   "cost_usd": 0.000615,
+   "llm_ms": 11072.5,
+   "wall_ms": 11234.8,
+   "errors": []
+  },
+  {
+   "id": "cor-top-n-order",
+   "split": "test",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "high",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "sales/leaderboard.py",
+      "line": 10,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Ascending sort returns lowest sellers",
+      "explanation": "The function sorts totals in ascending order, so ranked[:n] yields the n smallest sellers instead of the top performers. Typical calls expecting the best sellers will get incorrect results.",
+      "suggestion": "Sort with reverse=True or use heapq.nlargest to get descending order.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "sales/leaderboard.py",
+      "line": 10,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Ascending sort returns lowest sellers",
+      "explanation": "The function sorts totals in ascending order, so ranked[:n] yields the n smallest sellers instead of the top performers. Typical calls expecting the best sellers will get incorrect results.",
+      "suggestion": "Sort with reverse=True or use heapq.nlargest to get descending order.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "sorted ascending returns lowest sellers, so top_sellers returns wrong results"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1912,
+   "cost_usd": 0.000534,
+   "llm_ms": 6874.6,
+   "wall_ms": 7040.8,
+   "errors": []
+  },
+  {
+   "id": "perf-list-membership",
+   "split": "test",
+   "kind": "bug",
+   "category": "performance",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "newsletter/importer.py",
+      "line": 10,
+      "severity": "medium",
+      "category": "performance",
+      "title": "Inefficient duplicate detection",
+      "explanation": "Using a list for 'seen' makes the 'email in seen' check O(n) per row, leading to O(n^2) time for large CSVs (e.g., 200k rows) and can cause severe slowdown.",
+      "suggestion": "Replace the list with a set (e.g., seen: set[str] = set()) and use seen.add(email) for O(1) lookups.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "newsletter/importer.py",
+      "line": 10,
+      "severity": "medium",
+      "category": "performance",
+      "title": "Inefficient duplicate detection",
+      "explanation": "Using a list for 'seen' makes the 'email in seen' check O(n) per row, leading to O(n^2) time for large CSVs (e.g., 200k rows) and can cause severe slowdown.",
+      "suggestion": "Replace the list with a set (e.g., seen: set[str] = set()) and use seen.add(email) for O(1) lookups.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "Using a list for 'seen' makes each email lookup O(n), causing O(n^2) time on large CSVs."
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2014,
+   "cost_usd": 0.000579,
+   "llm_ms": 5071.1,
+   "wall_ms": 5241.1,
+   "errors": []
+  },
+  {
+   "id": "perf-config-in-loop",
+   "split": "test",
+   "kind": "bug",
+   "category": "performance",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "risk/scoring.py",
+      "line": 16,
+      "severity": "medium",
+      "category": "performance",
+      "title": "Repeatedly loading rules file",
+      "explanation": "score_all opens and parses the tax_rules.json file for every transaction, causing O(N) file I/O and JSON parsing which can slow down processing of large transaction lists.",
+      "suggestion": "Load the rules once before the loop (e.g., read file outside the for loop) and reuse the parsed dict for all score calls.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "risk/scoring.py",
+      "line": 16,
+      "severity": "medium",
+      "category": "performance",
+      "title": "Repeatedly loading rules file",
+      "explanation": "score_all opens and parses the tax_rules.json file for every transaction, causing O(N) file I/O and JSON parsing which can slow down processing of large transaction lists.",
+      "suggestion": "Load the rules once before the loop (e.g., read file outside the for loop) and reuse the parsed dict for all score calls.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "score_all now opens and parses the JSON rules file inside the loop, causing repeated I/O and parsing for each transaction"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2598,
+   "cost_usd": 0.000853,
+   "llm_ms": 16531.3,
+   "wall_ms": 16701.7,
+   "errors": []
+  },
+  {
+   "id": "perf-load-whole-table",
+   "split": "test",
+   "kind": "bug",
+   "category": "performance",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "support/activity.py",
+      "line": 7,
+      "severity": "medium",
+      "category": "performance",
+      "title": "Unbounded query loads entire events table",
+      "explanation": "The function fetches all rows from the events table without a LIMIT or user_id filter in SQL, then filters in Python. With a large table this can cause high memory usage, slow response, or OOM errors.",
+      "suggestion": "Add a WHERE clause for user_id and an appropriate LIMIT, e.g., db.execute('SELECT * FROM events WHERE user_id = ? ORDER BY ts DESC LIMIT ?', (user_id, limit)).fetchall()",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "support/activity.py",
+      "line": 7,
+      "severity": "medium",
+      "category": "performance",
+      "title": "Unbounded query loads entire events table",
+      "explanation": "The function fetches all rows from the events table without a LIMIT or user_id filter in SQL, then filters in Python. With a large table this can cause high memory usage, slow response, or OOM errors.",
+      "suggestion": "Add a WHERE clause for user_id and an appropriate LIMIT, e.g., db.execute('SELECT * FROM events WHERE user_id = ? ORDER BY ts DESC LIMIT ?', (user_id, limit)).fetchall()",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "The new function runs an unbounded SELECT and filters in Python, which can load the whole events table into memory and degrade performance."
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2006,
+   "cost_usd": 0.000613,
+   "llm_ms": 4307.5,
+   "wall_ms": 4474.2,
+   "errors": []
+  },
+  {
+   "id": "perf-sequential-awaits",
+   "split": "test",
+   "kind": "bug",
+   "category": "performance",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "quotes/suppliers.py",
+      "line": 15,
+      "severity": "medium",
+      "category": "reliability",
+      "title": "Unhandled exception from price_from",
+      "explanation": "If a supplier returns non‑JSON or a JSON without a \"price\" key, price_from will raise (KeyError or JSONDecodeError). The exception propagates out of all_prices, aborting the whole batch and losing results from other suppliers.",
+      "suggestion": "Wrap the call in try/except and treat failures as None or log them before assigning to out[name].",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "quotes/suppliers.py",
+      "line": 15,
+      "severity": "medium",
+      "category": "reliability",
+      "title": "Unhandled exception from price_from",
+      "explanation": "If a supplier returns non‑JSON or a JSON without a \"price\" key, price_from will raise (KeyError or JSONDecodeError). The exception propagates out of all_prices, aborting the whole batch and losing results from other suppliers.",
+      "suggestion": "Wrap the call in try/except and treat failures as None or log them before assigning to out[name].",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "price_from can raise on non‑JSON or missing \"price\", and the new all_prices loop lets such an exception abort the whole batch"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2739,
+   "cost_usd": 0.000972,
+   "llm_ms": 7699.7,
+   "wall_ms": 7868.2,
+   "errors": []
+  },
+  {
+   "id": "rel-swallowed-payment-error",
+   "split": "test",
+   "kind": "bug",
+   "category": "reliability",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "checkout/capture.py",
+      "line": 9,
+      "severity": "medium",
+      "category": "security",
+      "title": "`try`-`except`-`pass` detected, consider logging the exception",
+      "explanation": "ruff S110: `try`-`except`-`pass` detected, consider logging the exception",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "checkout/capture.py",
+      "line": 9,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Swallows capture errors, marks order paid incorrectly",
+      "explanation": "If gateway.capture raises any exception, the except block silently passes, then order.status is set to \"paid\" and saved, falsely recording a successful payment. This can happen on common transient failures and leads to financial data corruption.",
+      "suggestion": "Log the exception and only set order.status to \"paid\" when capture succeeds, or re‑raise for proper handling.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "checkout/capture.py",
+      "line": 9,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Swallows capture errors, marks order paid incorrectly",
+      "explanation": "If gateway.capture raises any exception, the except block silently passes, then order.status is set to \"paid\" and saved, falsely recording a successful payment. This can happen on common transient failures and leads to financial data corruption.",
+      "suggestion": "Log the exception and only set order.status to \"paid\" when capture succeeds, or re‑raise for proper handling.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "The added try/except swallows any exception from gateway.capture, yet the order is still marked paid, introducing incorrect payment recording."
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1922,
+   "cost_usd": 0.000568,
+   "llm_ms": 9232.9,
+   "wall_ms": 9394.3,
+   "errors": []
+  },
+  {
+   "id": "rel-unclosed-files",
+   "split": "test",
+   "kind": "bug",
+   "category": "reliability",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "etl/merge.py",
+      "line": 12,
+      "severity": "medium",
+      "category": "reliability",
+      "title": "File handles not closed",
+      "explanation": "Each shard file is opened with open() but never closed, causing a file descriptor leak. With thousands of shards the process can exceed the OS limit and raise an OSError, interrupting the merge.",
+      "suggestion": "Use a with statement: with open(path) as fh: rows.extend(json.load(fh))",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "etl/merge.py",
+      "line": 12,
+      "severity": "medium",
+      "category": "reliability",
+      "title": "File handles not closed",
+      "explanation": "Each shard file is opened with open() but never closed, causing a file descriptor leak. With thousands of shards the process can exceed the OS limit and raise an OSError, interrupting the merge.",
+      "suggestion": "Use a with statement: with open(path) as fh: rows.extend(json.load(fh))",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "The new function opens files without closing them, leading to potential descriptor leaks."
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1935,
+   "cost_usd": 0.000567,
+   "llm_ms": 7409.8,
+   "wall_ms": 7571.6,
+   "errors": []
+  },
+  {
+   "id": "rel-missing-await",
+   "split": "test",
+   "kind": "bug",
+   "category": "reliability",
+   "severity": "high",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "notify/shipping.py",
+      "line": 1,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Signature change breaks existing callers",
+      "explanation": "Adding a required 'push' argument to mark_shipped changes its signature; any code that still calls mark_shipped(order, db) will raise a TypeError and abort the shipping flow, leaving orders unmarked as shipped.",
+      "suggestion": "Provide a default value for push (e.g., None) and handle it, or update all call sites to pass a PushClient instance.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "notify/shipping.py",
+      "line": 4,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Async send not awaited",
+      "explanation": "push.send is defined as an async method but is invoked without 'await', so the coroutine is never executed; the notification is never sent and the un-awaited coroutine may generate warnings or leak resources.",
+      "suggestion": "Add 'await' before push.send, e.g., await push.send(...).",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "notify/shipping.py",
+      "line": 1,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Signature change breaks existing callers",
+      "explanation": "Adding a required 'push' argument to mark_shipped changes its signature; any code that still calls mark_shipped(order, db) will raise a TypeError and abort the shipping flow, leaving orders unmarked as shipped.",
+      "suggestion": "Provide a default value for push (e.g., None) and handle it, or update all call sites to pass a PushClient instance.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "Adding a required 'push' parameter changes the function signature, so existing calls without it will raise TypeError"
+     },
+     {
+      "path": "notify/shipping.py",
+      "line": 4,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Async send not awaited",
+      "explanation": "push.send is defined as an async method but is invoked without 'await', so the coroutine is never executed; the notification is never sent and the un-awaited coroutine may generate warnings or leak resources.",
+      "suggestion": "Add 'await' before push.send, e.g., await push.send(...).",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "push.send is async but called without await, so the coroutine is never executed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2686,
+   "cost_usd": 0.000964,
+   "llm_ms": 12262.3,
+   "wall_ms": 12426.6,
+   "errors": []
+  },
+  {
+   "id": "rel-hot-retry-loop",
+   "split": "test",
+   "kind": "bug",
+   "category": "reliability",
+   "severity": "high",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "inventory/sync.py",
+      "line": 7,
+      "severity": "medium",
+      "category": "performance",
+      "title": "Infinite retry without backoff",
+      "explanation": "If the supplier API keeps raising ConnectionError, the loop will spin endlessly, consuming CPU and flooding logs, potentially hanging the thread or process.",
+      "suggestion": "Add a retry limit and exponential backoff, and optionally raise after max attempts.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "inventory/sync.py",
+      "line": 7,
+      "severity": "medium",
+      "category": "performance",
+      "title": "Infinite retry without backoff",
+      "explanation": "If the supplier API keeps raising ConnectionError, the loop will spin endlessly, consuming CPU and flooding logs, potentially hanging the thread or process.",
+      "suggestion": "Add a retry limit and exponential backoff, and optionally raise after max attempts.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "The added while‑True loop retries forever on ConnectionError, causing unbounded CPU use and log spam in realistic failure cases"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1854,
+   "cost_usd": 0.000535,
+   "llm_ms": 4111.3,
+   "wall_ms": 4273.2,
+   "errors": []
+  },
+  {
+   "id": "sec-shell-thumbnail",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "media/upload.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "Starting a process with a shell, possible injection detected, security issue.",
+      "explanation": "bandit B605: Starting a process with a shell, possible injection detected, security issue.",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "media/upload.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "Command injection via os.system",
+      "explanation": "The thumbnail command is built with an unsanitized file path, allowing an attacker to craft a filename that injects shell commands (e.g., containing ';' or '`'). When make_thumbnail is called, os.system will execute the injected payload.",
+      "suggestion": "Replace os.system with subprocess.run([...], check=True) passing arguments as a list to avoid shell interpretation, and validate/quote the path.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "media/upload.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "Command injection via os.system",
+      "explanation": "The thumbnail command is built with an unsanitized file path, allowing an attacker to craft a filename that injects shell commands (e.g., containing ';' or '`'). When make_thumbnail is called, os.system will execute the injected payload.",
+      "suggestion": "Replace os.system with subprocess.run([...], check=True) passing arguments as a list to avoid shell interpretation, and validate/quote the path.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "os.system builds a shell command with an unsanitized path derived from the uploaded filename, enabling command injection"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2466,
+   "cost_usd": 0.00081,
+   "llm_ms": 8211.2,
+   "wall_ms": 8385.9,
+   "errors": []
+  },
+  {
+   "id": "sec-hardcoded-key",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "billing/settings.py",
+      "line": 6,
+      "severity": "medium",
+      "category": "security",
+      "title": "Possible hardcoded password assigned to: \"PAYMENTS_SECRET\"",
+      "explanation": "ruff S105: Possible hardcoded password assigned to: \"PAYMENTS_SECRET\"",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "billing/settings.py",
+      "line": 6,
+      "severity": "high",
+      "category": "security",
+      "title": "Hardcoded payment secret",
+      "explanation": "The code stores the payment provider secret directly in source, exposing credentials if the repo is accessed. This can lead to credential leakage and unauthorized API access.",
+      "suggestion": "Load the secret from an environment variable (e.g., os.getenv) and avoid committing it to source control.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "billing/settings.py",
+      "line": 6,
+      "severity": "high",
+      "category": "security",
+      "title": "Hardcoded payment secret",
+      "explanation": "The code stores the payment provider secret directly in source, exposing credentials if the repo is accessed. This can lead to credential leakage and unauthorized API access.",
+      "suggestion": "Load the secret from an environment variable (e.g., os.getenv) and avoid committing it to source control.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "Hardcoded secret is introduced, exposing credentials"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1734,
+   "cost_usd": 0.000429,
+   "llm_ms": 10344.0,
+   "wall_ms": 10513.6,
+   "errors": []
+  },
+  {
+   "id": "sec-pickle-cookie",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "shop/cart.py",
+      "line": 19,
+      "severity": "high",
+      "category": "security",
+      "title": "`pickle` and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue",
+      "explanation": "ruff S301: `pickle` and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "shop/cart.py",
+      "line": 15,
+      "severity": "high",
+      "category": "security",
+      "title": "pickle used for cookie serialization",
+      "explanation": "Serializing Cart with pickle stores binary data in a cookie that can be tampered by a client; if altered, the server may deserialize malicious payload leading to code execution.",
+      "suggestion": "Replace pickle with a safe format (e.g., JSON) and sign the cookie (e.g., HMAC) to prevent tampering.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "shop/cart.py",
+      "line": 19,
+      "severity": "high",
+      "category": "security",
+      "title": "pickle deserialization of untrusted cookie",
+      "explanation": "Deserializing the cookie value with pickle.loads trusts data supplied by the client, enabling arbitrary code execution if the cookie is crafted maliciously.",
+      "suggestion": "Use a safe deserialization method such as json.loads on signed data, or employ a library like itsdangerous for signed cookies.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "shop/cart.py",
+      "line": 15,
+      "severity": "high",
+      "category": "security",
+      "title": "pickle used for cookie serialization",
+      "explanation": "Serializing Cart with pickle stores binary data in a cookie that can be tampered by a client; if altered, the server may deserialize malicious payload leading to code execution.",
+      "suggestion": "Replace pickle with a safe format (e.g., JSON) and sign the cookie (e.g., HMAC) to prevent tampering.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "pickle is used to serialize user‑controlled data for a cookie, allowing malicious payloads to be executed on load"
+     },
+     {
+      "path": "shop/cart.py",
+      "line": 19,
+      "severity": "high",
+      "category": "security",
+      "title": "pickle deserialization of untrusted cookie",
+      "explanation": "Deserializing the cookie value with pickle.loads trusts data supplied by the client, enabling arbitrary code execution if the cookie is crafted maliciously.",
+      "suggestion": "Use a safe deserialization method such as json.loads on signed data, or employ a library like itsdangerous for signed cookies.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "pickle.loads is applied to data from the client cookie, enabling arbitrary code execution if the cookie is tampered"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2272,
+   "cost_usd": 0.000671,
+   "llm_ms": 9430.3,
+   "wall_ms": 9604.9,
+   "errors": []
+  },
+  {
+   "id": "sec-path-traversal",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "reports/views.py",
+      "line": 17,
+      "severity": "high",
+      "category": "security",
+      "title": "Path traversal enables arbitrary file read",
+      "explanation": "An attacker can supply a filename like \"../etc/passwd\"; os.path.join will construct a path outside REPORT_DIR and send_file will serve that file, leaking sensitive data.",
+      "suggestion": "Validate the filename (e.g., enforce basename, reject '..' components) or use a safe join check to ensure the final path is within REPORT_DIR before calling send_file.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "reports/views.py",
+      "line": 17,
+      "severity": "high",
+      "category": "security",
+      "title": "Path traversal enables arbitrary file read",
+      "explanation": "An attacker can supply a filename like \"../etc/passwd\"; os.path.join will construct a path outside REPORT_DIR and send_file will serve that file, leaking sensitive data.",
+      "suggestion": "Validate the filename (e.g., enforce basename, reject '..' components) or use a safe join check to ensure the final path is within REPORT_DIR before calling send_file.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "download_report joins unchecked user input with REPORT_DIR, allowing path traversal"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2133,
+   "cost_usd": 0.00064,
+   "llm_ms": 8772.8,
+   "wall_ms": 8942.8,
+   "errors": []
+  },
+  {
+   "id": "sec-md5-passwords",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "accounts/models.py",
+      "line": 13,
+      "severity": "high",
+      "category": "security",
+      "title": "Use of weak MD5 hash for security. Consider usedforsecurity=False",
+      "explanation": "bandit B324: Use of weak MD5 hash for security. Consider usedforsecurity=False",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "accounts/models.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "Use of weak MD5 hash for security. Consider usedforsecurity=False",
+      "explanation": "bandit B324: Use of weak MD5 hash for security. Consider usedforsecurity=False",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "accounts/models.py",
+      "line": 13,
+      "severity": "high",
+      "category": "security",
+      "title": "Insecure MD5 password hashing",
+      "explanation": "Storing passwords with plain MD5 (no salt) is cryptographically weak and vulnerable to fast brute‑force attacks, leading to credential compromise.",
+      "suggestion": "Replace MD5 with a dedicated password‑hashing function such as bcrypt, Argon2, or PBKDF2 with a per‑user salt.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "accounts/models.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "Insecure MD5 password hashing",
+      "explanation": "Re‑computing the password hash with MD5 repeats the same weak algorithm, exposing the same vulnerability during verification.",
+      "suggestion": "Use the same strong password‑hashing library as in set_password (e.g., bcrypt, Argon2, PBKDF2) for verification.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "accounts/models.py",
+      "line": 13,
+      "severity": "high",
+      "category": "security",
+      "title": "Insecure MD5 password hashing",
+      "explanation": "Storing passwords with plain MD5 (no salt) is cryptographically weak and vulnerable to fast brute‑force attacks, leading to credential compromise.",
+      "suggestion": "Replace MD5 with a dedicated password‑hashing function such as bcrypt, Argon2, or PBKDF2 with a per‑user salt.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "MD5 without salt is insecure"
+     },
+     {
+      "path": "accounts/models.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "Insecure MD5 password hashing",
+      "explanation": "Re‑computing the password hash with MD5 repeats the same weak algorithm, exposing the same vulnerability during verification.",
+      "suggestion": "Use the same strong password‑hashing library as in set_password (e.g., bcrypt, Argon2, PBKDF2) for verification.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "MD5 verification repeats the weak hash"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2242,
+   "cost_usd": 0.000639,
+   "llm_ms": 12223.9,
+   "wall_ms": 12396.0,
+   "errors": []
+  },
+  {
+   "id": "sec-verify-false",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "settlements/fetch.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "Call to requests with verify=False disabling SSL certificate checks, security issue.",
+      "explanation": "bandit B501: Call to requests with verify=False disabling SSL certificate checks, security issue.",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "settlements/fetch.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "SSL verification disabled",
+      "explanation": "The request disables TLS certificate verification (verify=False), allowing man‑in‑the‑middle attacks when fetching settlement data.",
+      "suggestion": "Remove verify=False or provide proper CA bundle; enable default verification.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "settlements/fetch.py",
+      "line": 21,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Assumes 'items' key always present",
+      "explanation": "If the API response JSON lacks the 'items' field, a KeyError will be raised, causing the fetch to crash.",
+      "suggestion": "Validate the JSON structure and handle missing keys gracefully, e.g., use resp.json().get('items', [])",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "settlements/fetch.py",
+      "line": 18,
+      "severity": "high",
+      "category": "security",
+      "title": "SSL verification disabled",
+      "explanation": "The request disables TLS certificate verification (verify=False), allowing man‑in‑the‑middle attacks when fetching settlement data.",
+      "suggestion": "Remove verify=False or provide proper CA bundle; enable default verification.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "verify=False disables TLS verification, creating a MITM risk"
+     },
+     {
+      "path": "settlements/fetch.py",
+      "line": 21,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Assumes 'items' key always present",
+      "explanation": "If the API response JSON lacks the 'items' field, a KeyError will be raised, causing the fetch to crash.",
+      "suggestion": "Validate the JSON structure and handle missing keys gracefully, e.g., use resp.json().get('items', [])",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "resp.json()[\"items\"] assumes key exists and will raise KeyError if absent"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2279,
+   "cost_usd": 0.000674,
+   "llm_ms": 9057.8,
+   "wall_ms": 9227.6,
+   "errors": []
+  },
+  {
+   "id": "sec-weak-reset-token",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "accounts/reset.py",
+      "line": 10,
+      "severity": "medium",
+      "category": "security",
+      "title": "Standard pseudo-random generators are not suitable for cryptographic purposes",
+      "explanation": "ruff S311: Standard pseudo-random generators are not suitable for cryptographic purposes",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "accounts/reset.py",
+      "line": 10,
+      "severity": "high",
+      "category": "security",
+      "title": "Insecure token generation",
+      "explanation": "new_reset_token uses random.choice from the non‑cryptographic random module, producing predictable reset tokens that can be guessed or brute‑forced, compromising account security.",
+      "suggestion": "Replace random.choice with secrets.choice or use secrets.token_urlsafe to generate cryptographically secure tokens.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "accounts/reset.py",
+      "line": 10,
+      "severity": "high",
+      "category": "security",
+      "title": "Insecure token generation",
+      "explanation": "new_reset_token uses random.choice from the non‑cryptographic random module, producing predictable reset tokens that can be guessed or brute‑forced, compromising account security.",
+      "suggestion": "Replace random.choice with secrets.choice or use secrets.token_urlsafe to generate cryptographically secure tokens.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "new_reset_token uses the non‑cryptographic random module, making reset tokens predictable and insecure"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1790,
+   "cost_usd": 0.000473,
+   "llm_ms": 9516.4,
+   "wall_ms": 9677.4,
+   "errors": []
+  },
+  {
+   "id": "sec-eval-calculator",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "pricing/formula.py",
+      "line": 6,
+      "severity": "high",
+      "category": "security",
+      "title": "Use of possibly insecure function; consider using `ast.literal_eval`",
+      "explanation": "ruff S307: Use of possibly insecure function; consider using `ast.literal_eval`",
+      "suggestion": "",
+      "source": "linter",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "pricing/formula.py",
+      "line": 6,
+      "severity": "high",
+      "category": "security",
+      "title": "Insecure eval enables code execution",
+      "explanation": "The new evaluate_formula uses eval on a user‑supplied string. Even though globals are limited, Python injects __builtins__, allowing arbitrary code (e.g., '__import__(\"os\").system(\"rm -rf /\")') to run, leading to remote code execution.",
+      "suggestion": "Replace eval with a safe parser such as ast.literal_eval for literals or a custom expression evaluator that only permits arithmetic on 'base'.",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "pricing/formula.py",
+      "line": 6,
+      "severity": "high",
+      "category": "security",
+      "title": "Insecure eval enables code execution",
+      "explanation": "The new evaluate_formula uses eval on a user‑supplied string. Even though globals are limited, Python injects __builtins__, allowing arbitrary code (e.g., '__import__(\"os\").system(\"rm -rf /\")') to run, leading to remote code execution.",
+      "suggestion": "Replace eval with a safe parser such as ast.literal_eval for literals or a custom expression evaluator that only permits arithmetic on 'base'.",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "eval with default builtins allows arbitrary code execution"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1940,
+   "cost_usd": 0.000581,
+   "llm_ms": 6095.8,
+   "wall_ms": 6262.8,
+   "errors": []
+  },
+  {
+   "id": "sec-admin-bypass-injection",
+   "split": "test",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "admin/export.py",
+      "line": 7,
+      "severity": "medium",
+      "category": "reliability",
+      "title": "Assumes user has username attribute",
+      "explanation": "The code accesses user.username without verifying the attribute exists; if user is None or lacks username, an AttributeError will be raised, causing a crash during export.",
+      "suggestion": "Validate that user has a username attribute (e.g., use getattr with default) before calling startswith",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     },
+     {
+      "path": "admin/export.py",
+      "line": 8,
+      "severity": "high",
+      "category": "security",
+      "title": "Bypasses permission check for service accounts",
+      "explanation": "Service accounts (usernames starting with \"svc-\") skip the has_permission check, allowing them to export users without any authorization verification. If such accounts are not intended to have export rights, this creates an exploitable privilege escalation.",
+      "suggestion": "Require explicit permission for service accounts or enforce a separate, safe permission model instead of blanket bypass",
+      "source": "llm",
+      "verdict": "",
+      "verdict_reason": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "admin/export.py",
+      "line": 8,
+      "severity": "high",
+      "category": "security",
+      "title": "Bypasses permission check for service accounts",
+      "explanation": "Service accounts (usernames starting with \"svc-\") skip the has_permission check, allowing them to export users without any authorization verification. If such accounts are not intended to have export rights, this creates an exploitable privilege escalation.",
+      "suggestion": "Require explicit permission for service accounts or enforce a separate, safe permission model instead of blanket bypass",
+      "source": "llm",
+      "verdict": "confirmed",
+      "verdict_reason": "adds a bypass for usernames starting with svc-"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2363,
+   "cost_usd": 0.000801,
+   "llm_ms": 4629.5,
+   "wall_ms": 4790.4,
+   "errors": []
+  }
+ ]
+}
