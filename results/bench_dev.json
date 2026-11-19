@@ -35,9 +35,9 @@
     "recall": 1.0,
     "caught": 6,
     "high_recall": 1.0,
-    "precision": 0.667,
-    "comments": 9,
-    "false_alarms": 3,
+    "precision": 0.75,
+    "comments": 8,
+    "false_alarms": 2,
     "clean_prs_flagged": 1,
     "by_category": {
      "security": {
@@ -62,9 +62,9 @@
     "recall": 1.0,
     "caught": 6,
     "high_recall": 1.0,
-    "precision": 0.667,
-    "comments": 9,
-    "false_alarms": 3,
+    "precision": 0.75,
+    "comments": 8,
+    "false_alarms": 2,
     "clean_prs_flagged": 1,
     "by_category": {
      "security": {
@@ -86,10 +86,10 @@
     }
    }
   },
-  "cost_usd": 0.005,
-  "cost_per_pr": 0.00063,
-  "tokens": 15776,
-  "llm_ms_p50": 2330,
+  "cost_usd": 0.0052,
+  "cost_per_pr": 0.00065,
+  "tokens": 16677,
+  "llm_ms_p50": 2504,
   "model": "openai/gpt-oss-120b (Groq) via llm-gateway",
   "split": "dev"
  },
@@ -108,9 +108,9 @@
       "line": 1,
       "severity": "medium",
       "category": "correctness",
-      "title": "Removed public function breaks callers",
-      "explanation": "The original `calc` function is deleted and renamed to `invoice_total`. Existing code that imports or calls `calc` will raise a NameError at runtime.",
-      "suggestion": "Add a wrapper `def calc(items, r): return invoice_total(items, r)` or keep the old name as an alias.",
+      "title": "Renamed function breaks callers",
+      "explanation": "Existing code that imports or calls `calc` will raise AttributeError or ImportError because the function was renamed to `invoice_total` without providing a compatibility alias.",
+      "suggestion": "Add a wrapper `def calc(items, r): return invoice_total(items, r)` or update all call sites to use the new name.",
       "source": "llm",
       "verdict": "",
       "verdict_reason": ""
@@ -122,20 +122,20 @@
       "line": 1,
       "severity": "medium",
       "category": "correctness",
-      "title": "Removed public function breaks callers",
-      "explanation": "The original `calc` function is deleted and renamed to `invoice_total`. Existing code that imports or calls `calc` will raise a NameError at runtime.",
-      "suggestion": "Add a wrapper `def calc(items, r): return invoice_total(items, r)` or keep the old name as an alias.",
+      "title": "Renamed function breaks callers",
+      "explanation": "Existing code that imports or calls `calc` will raise AttributeError or ImportError because the function was renamed to `invoice_total` without providing a compatibility alias.",
+      "suggestion": "Add a wrapper `def calc(items, r): return invoice_total(items, r)` or update all call sites to use the new name.",
       "source": "llm",
       "verdict": "confirmed",
-      "verdict_reason": "The original public function calc is removed and renamed, so existing callers using calc will get a NameError."
+      "verdict_reason": "The original calc function was removed and renamed to invoice_total, so existing imports or calls to calc will fail."
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1913,
-   "cost_usd": 0.000608,
-   "llm_ms": 2124.9,
-   "wall_ms": 2290.5,
+   "tokens": 2112,
+   "cost_usd": 0.000685,
+   "llm_ms": 2418.8,
+   "wall_ms": 2557.4,
    "errors": []
   },
   {
@@ -163,10 +163,10 @@
     "llm+verify": []
    },
    "llm_calls": 1,
-   "tokens": 1369,
-   "cost_usd": 0.000387,
-   "llm_ms": 1251.4,
-   "wall_ms": 1417.6,
+   "tokens": 1665,
+   "cost_usd": 0.000533,
+   "llm_ms": 2258.8,
+   "wall_ms": 2401.4,
    "errors": []
   },
   {
@@ -182,10 +182,10 @@
       "path": "orders/listing.py",
       "line": 1,
       "severity": "medium",
-      "category": "correctness",
-      "title": "Function signature change may break callers",
-      "explanation": "The function now returns a dict instead of a list; existing code that expects a list of orders will raise TypeError or attribute errors when accessing the result.",
-      "suggestion": "Update callers to handle the new dict format or keep backward‑compatible overload returning the list when needed",
+      "category": "reliability",
+      "title": "Return type changed from list to dict",
+      "explanation": "The function now returns a dict instead of the original list, so existing callers that expect a list will raise TypeError or fail when accessing list methods.",
+      "suggestion": "Update callers to handle the new dict format or keep backward compatibility by returning the list when only one argument is used",
       "source": "llm",
       "verdict": "",
       "verdict_reason": ""
@@ -193,11 +193,11 @@
      {
       "path": "orders/listing.py",
       "line": 6,
-      "severity": "medium",
+      "severity": "high",
       "category": "correctness",
-      "title": "Off‑by‑one slice excludes last item",
-      "explanation": "The slice uses start + size - 1, returning only size‑1 elements per page, so the last order on each page is omitted.",
-      "suggestion": "Change to ordered[start:start+size]",
+      "title": "Off‑by‑one slice drops items",
+      "explanation": "The slice uses start+size‑1, so a page of size 1 returns an empty list and other pages miss the last item, causing missing order data for typical requests.",
+      "suggestion": "Change the slice to ordered[start:start+size]",
       "source": "llm",
       "verdict": "",
       "verdict_reason": ""
@@ -208,33 +208,33 @@
       "path": "orders/listing.py",
       "line": 1,
       "severity": "medium",
-      "category": "correctness",
-      "title": "Function signature change may break callers",
-      "explanation": "The function now returns a dict instead of a list; existing code that expects a list of orders will raise TypeError or attribute errors when accessing the result.",
-      "suggestion": "Update callers to handle the new dict format or keep backward‑compatible overload returning the list when needed",
+      "category": "reliability",
+      "title": "Return type changed from list to dict",
+      "explanation": "The function now returns a dict instead of the original list, so existing callers that expect a list will raise TypeError or fail when accessing list methods.",
+      "suggestion": "Update callers to handle the new dict format or keep backward compatibility by returning the list when only one argument is used",
       "source": "llm",
       "verdict": "confirmed",
-      "verdict_reason": "return type changed from list to dict, breaking existing callers"
+      "verdict_reason": "function now returns dict instead of list, breaking existing callers"
      },
      {
       "path": "orders/listing.py",
       "line": 6,
-      "severity": "medium",
+      "severity": "high",
       "category": "correctness",
-      "title": "Off‑by‑one slice excludes last item",
-      "explanation": "The slice uses start + size - 1, returning only size‑1 elements per page, so the last order on each page is omitted.",
-      "suggestion": "Change to ordered[start:start+size]",
+      "title": "Off‑by‑one slice drops items",
+      "explanation": "The slice uses start+size‑1, so a page of size 1 returns an empty list and other pages miss the last item, causing missing order data for typical requests.",
+      "suggestion": "Change the slice to ordered[start:start+size]",
       "source": "llm",
       "verdict": "confirmed",
-      "verdict_reason": "slice end should be start+size, size-1 drops one item"
+      "verdict_reason": "slice end should be start+size, using -1 drops items"
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 2276,
-   "cost_usd": 0.000753,
-   "llm_ms": 2534.2,
-   "wall_ms": 2699.9,
+   "tokens": 2625,
+   "cost_usd": 0.000917,
+   "llm_ms": 3071.3,
+   "wall_ms": 3213.5,
    "errors": []
   },
   {
@@ -249,11 +249,11 @@
      {
       "path": "checkout/shipping.py",
       "line": 6,
-      "severity": "high",
+      "severity": "medium",
       "category": "correctness",
-      "title": "Free shipping condition inverted",
-      "explanation": "The code returns 0 (free shipping) when order_total is less than FREE_SHIPPING_FROM, but the intended rule is free shipping for orders of 999 or more. This causes low-value orders to ship free and high-value orders to be charged, leading to revenue loss.",
-      "suggestion": "Change the comparison to `if order_total >= FREE_SHIPPING_FROM:` and swap the return values accordingly.",
+      "title": "Free shipping condition reversed",
+      "explanation": "The code returns 0 when order_total is less than FREE_SHIPPING_FROM, giving free shipping for low‑value orders and charging the flat fee for orders that meet or exceed the threshold, leading to revenue loss.",
+      "suggestion": "Change the condition to `if order_total >= FREE_SHIPPING_FROM:` so that free shipping applies to orders at or above the threshold.",
       "source": "llm",
       "verdict": "",
       "verdict_reason": ""
@@ -263,22 +263,22 @@
      {
       "path": "checkout/shipping.py",
       "line": 6,
-      "severity": "high",
+      "severity": "medium",
       "category": "correctness",
-      "title": "Free shipping condition inverted",
-      "explanation": "The code returns 0 (free shipping) when order_total is less than FREE_SHIPPING_FROM, but the intended rule is free shipping for orders of 999 or more. This causes low-value orders to ship free and high-value orders to be charged, leading to revenue loss.",
-      "suggestion": "Change the comparison to `if order_total >= FREE_SHIPPING_FROM:` and swap the return values accordingly.",
+      "title": "Free shipping condition reversed",
+      "explanation": "The code returns 0 when order_total is less than FREE_SHIPPING_FROM, giving free shipping for low‑value orders and charging the flat fee for orders that meet or exceed the threshold, leading to revenue loss.",
+      "suggestion": "Change the condition to `if order_total >= FREE_SHIPPING_FROM:` so that free shipping applies to orders at or above the threshold.",
       "source": "llm",
       "verdict": "confirmed",
-      "verdict_reason": "The added condition returns 0 for orders below the threshold, reversing the intended free‑shipping rule."
+      "verdict_reason": "The added condition returns 0 for orders below the threshold, reversing the intended free‑shipping logic."
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1736,
-   "cost_usd": 0.000538,
-   "llm_ms": 1626.8,
-   "wall_ms": 1798.8,
+   "tokens": 2075,
+   "cost_usd": 0.000705,
+   "llm_ms": 2495.1,
+   "wall_ms": 2637.4,
    "errors": []
   },
   {
@@ -296,8 +296,8 @@
       "severity": "medium",
       "category": "performance",
       "title": "N+1 query per order",
-      "explanation": "For each order row the code runs a separate SELECT to fetch the customer name, causing O(N) database queries which can severely degrade export performance on large datasets.",
-      "suggestion": "Fetch customer names in a single query (e.g., join customers in the original SELECT) and avoid per‑row queries.",
+      "explanation": "Each iteration runs a separate SELECT to fetch the customer name, turning a single query into O(N) DB calls; with many orders this can cause severe latency or timeouts.",
+      "suggestion": "Fetch customer names with a JOIN in the initial query instead of per‑row lookups",
       "source": "llm",
       "verdict": "",
       "verdict_reason": ""
@@ -310,19 +310,19 @@
       "severity": "medium",
       "category": "performance",
       "title": "N+1 query per order",
-      "explanation": "For each order row the code runs a separate SELECT to fetch the customer name, causing O(N) database queries which can severely degrade export performance on large datasets.",
-      "suggestion": "Fetch customer names in a single query (e.g., join customers in the original SELECT) and avoid per‑row queries.",
+      "explanation": "Each iteration runs a separate SELECT to fetch the customer name, turning a single query into O(N) DB calls; with many orders this can cause severe latency or timeouts.",
+      "suggestion": "Fetch customer names with a JOIN in the initial query instead of per‑row lookups",
       "source": "llm",
       "verdict": "confirmed",
-      "verdict_reason": "Adds a per‑order SELECT for the customer name, turning a single query into N+1 queries and hurting performance."
+      "verdict_reason": "The added per‑order SELECT creates an N+1 query, increasing DB calls from one to O(N) and can degrade performance."
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 2197,
-   "cost_usd": 0.000705,
-   "llm_ms": 2017.6,
-   "wall_ms": 2181.5,
+   "tokens": 2222,
+   "cost_usd": 0.000677,
+   "llm_ms": 2512.8,
+   "wall_ms": 2650.7,
    "errors": []
   },
   {
@@ -352,21 +352,9 @@
       "line": 11,
       "severity": "medium",
       "category": "reliability",
-      "title": "requests call missing timeout",
-      "explanation": "If the central bank endpoint hangs, requests.get will block indefinitely, stalling the worker and potentially exhausting thread pools.",
+      "title": "requests.get missing timeout",
+      "explanation": "The call to requests.get has no timeout, so if the remote server hangs the worker can block indefinitely, leading to resource exhaustion or denial of service.",
       "suggestion": "Add a timeout argument, e.g., requests.get(RATES_URL, timeout=10)",
-      "source": "llm",
-      "verdict": "",
-      "verdict_reason": ""
-     },
-     {
-      "path": "jobs/rates.py",
-      "line": 12,
-      "severity": "medium",
-      "category": "reliability",
-      "title": "unhandled HTTP errors may crash worker",
-      "explanation": "raise_for_status() will raise an exception on non‑2xx responses; without a try/except the job will terminate and may be retried endlessly.",
-      "suggestion": "Wrap the request in try/except and handle requests.exceptions.HTTPError appropriately",
       "source": "llm",
       "verdict": "",
       "verdict_reason": ""
@@ -378,32 +366,20 @@
       "line": 11,
       "severity": "medium",
       "category": "reliability",
-      "title": "requests call missing timeout",
-      "explanation": "If the central bank endpoint hangs, requests.get will block indefinitely, stalling the worker and potentially exhausting thread pools.",
+      "title": "requests.get missing timeout",
+      "explanation": "The call to requests.get has no timeout, so if the remote server hangs the worker can block indefinitely, leading to resource exhaustion or denial of service.",
       "suggestion": "Add a timeout argument, e.g., requests.get(RATES_URL, timeout=10)",
       "source": "llm",
       "verdict": "confirmed",
-      "verdict_reason": "requests.get lacks a timeout, so a hanging endpoint can block indefinitely"
-     },
-     {
-      "path": "jobs/rates.py",
-      "line": 12,
-      "severity": "medium",
-      "category": "reliability",
-      "title": "unhandled HTTP errors may crash worker",
-      "explanation": "raise_for_status() will raise an exception on non‑2xx responses; without a try/except the job will terminate and may be retried endlessly.",
-      "suggestion": "Wrap the request in try/except and handle requests.exceptions.HTTPError appropriately",
-      "source": "llm",
-      "verdict": "confirmed",
-      "verdict_reason": "raise_for_status() can raise on non‑2xx responses and is not caught, potentially crashing the worker"
+      "verdict_reason": "requests.get without timeout can block indefinitely, and this call is added in the PR"
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 2502,
-   "cost_usd": 0.000908,
-   "llm_ms": 3016.7,
-   "wall_ms": 3181.4,
+   "tokens": 1972,
+   "cost_usd": 0.000567,
+   "llm_ms": 3997.6,
+   "wall_ms": 4139.0,
    "errors": []
   },
   {
@@ -434,8 +410,8 @@
       "severity": "high",
       "category": "security",
       "title": "SQL injection via unsanitized prefix",
-      "explanation": "The f-string inserts the raw `prefix` directly into the SQL query, allowing an attacker to inject malicious SQL (e.g., a prefix containing \"' OR 1=1 --\"). This can be triggered by any caller that supplies a crafted prefix.",
-      "suggestion": "Use a parameterized query: `query = \"SELECT id, name, email FROM users WHERE name LIKE ? ORDER BY name LIMIT ?\"` and pass `(prefix + \"%\", limit)` to `execute`.",
+      "explanation": "The f-string inserts the raw `prefix` directly into the SQL query, allowing an attacker to inject malicious SQL through specially crafted input, e.g., \"' OR 1=1 --\".",
+      "suggestion": "Use a parameterized query: `query = \"SELECT id, name, email FROM users WHERE name LIKE ? ORDER BY name LIMIT ?\"` and pass `(prefix + '%', limit)` to `execute`.",
       "source": "llm",
       "verdict": "",
       "verdict_reason": ""
@@ -448,19 +424,19 @@
       "severity": "high",
       "category": "security",
       "title": "SQL injection via unsanitized prefix",
-      "explanation": "The f-string inserts the raw `prefix` directly into the SQL query, allowing an attacker to inject malicious SQL (e.g., a prefix containing \"' OR 1=1 --\"). This can be triggered by any caller that supplies a crafted prefix.",
-      "suggestion": "Use a parameterized query: `query = \"SELECT id, name, email FROM users WHERE name LIKE ? ORDER BY name LIMIT ?\"` and pass `(prefix + \"%\", limit)` to `execute`.",
+      "explanation": "The f-string inserts the raw `prefix` directly into the SQL query, allowing an attacker to inject malicious SQL through specially crafted input, e.g., \"' OR 1=1 --\".",
+      "suggestion": "Use a parameterized query: `query = \"SELECT id, name, email FROM users WHERE name LIKE ? ORDER BY name LIMIT ?\"` and pass `(prefix + '%', limit)` to `execute`.",
       "source": "llm",
       "verdict": "confirmed",
-      "verdict_reason": "The f‑string embeds the raw prefix into the SQL, creating a classic injection vector, and this function is new in the PR."
+      "verdict_reason": "The added f‑string inserts the raw prefix into the SQL, enabling injection."
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1912,
-   "cost_usd": 0.000542,
-   "llm_ms": 8886.9,
-   "wall_ms": 9051.9,
+   "tokens": 1906,
+   "cost_usd": 0.000501,
+   "llm_ms": 1491.1,
+   "wall_ms": 1630.7,
    "errors": []
   },
   {
@@ -490,9 +466,9 @@
       "line": 8,
       "severity": "high",
       "category": "security",
-      "title": "Unsafe yaml.load enables code execution",
-      "explanation": "The code uses yaml.load with yaml.Loader on user‑provided data, which can instantiate arbitrary Python objects. An attacker can upload a crafted YAML file to execute code on the server.",
-      "suggestion": "Replace yaml.load with yaml.safe_load (or yaml.load with SafeLoader) to restrict object construction.",
+      "title": "Unsafe yaml.load with default Loader",
+      "explanation": "Using yaml.load with yaml.Loader can deserialize arbitrary objects, enabling code execution if a malicious YAML file is uploaded.",
+      "suggestion": "Replace yaml.load with yaml.safe_load or use yaml.load with yaml.SafeLoader",
       "source": "llm",
       "verdict": "",
       "verdict_reason": ""
@@ -504,20 +480,20 @@
       "line": 8,
       "severity": "high",
       "category": "security",
-      "title": "Unsafe yaml.load enables code execution",
-      "explanation": "The code uses yaml.load with yaml.Loader on user‑provided data, which can instantiate arbitrary Python objects. An attacker can upload a crafted YAML file to execute code on the server.",
-      "suggestion": "Replace yaml.load with yaml.safe_load (or yaml.load with SafeLoader) to restrict object construction.",
+      "title": "Unsafe yaml.load with default Loader",
+      "explanation": "Using yaml.load with yaml.Loader can deserialize arbitrary objects, enabling code execution if a malicious YAML file is uploaded.",
+      "suggestion": "Replace yaml.load with yaml.safe_load or use yaml.load with yaml.SafeLoader",
       "source": "llm",
       "verdict": "confirmed",
-      "verdict_reason": "yaml.load with yaml.Loader is unsafe and can execute arbitrary code"
+      "verdict_reason": "yaml.load with yaml.Loader is unsafe and can execute arbitrary objects, and this was introduced by the PR"
      }
     ]
    },
    "llm_calls": 2,
-   "tokens": 1871,
-   "cost_usd": 0.000538,
-   "llm_ms": 9847.9,
-   "wall_ms": 10015.0,
+   "tokens": 2100,
+   "cost_usd": 0.00064,
+   "llm_ms": 10476.7,
+   "wall_ms": 10615.0,
    "errors": []
   }
  ]
