@@ -1,0 +1,295 @@
+# Planted performance and reliability bugs. "#@bug" marks the ground-truth lines.
+- id: perf-n-plus-one
+  split: dev
+  title: "Show customer names on the orders export"
+  body: "Finance wanted names, not IDs, in the CSV."
+  bugs: [{category: performance, severity: medium, what: "one database query per order (N+1)"}]
+  before:
+    exports/orders_csv.py: |
+      import csv
+      import io
+
+
+      def orders_csv(db, since) -> str:
+          orders = db.execute("SELECT id, customer_id, total FROM orders WHERE created_at >= ?", (since,)).fetchall()
+          buf = io.StringIO()
+          w = csv.writer(buf)
+          w.writerow(["order_id", "customer_id", "total"])
+          for o in orders:
+              w.writerow([o["id"], o["customer_id"], o["total"]])
+          return buf.getvalue()
+  after:
+    exports/orders_csv.py: |
+      import csv
+      import io
+
+
+      def orders_csv(db, since) -> str:
+          orders = db.execute("SELECT id, customer_id, total FROM orders WHERE created_at >= ?", (since,)).fetchall()
+          buf = io.StringIO()
+          w = csv.writer(buf)
+          w.writerow(["order_id", "customer", "total"])
+          for o in orders:
+              customer = db.execute("SELECT name FROM customers WHERE id = ?", (o["customer_id"],)).fetchone()  #@bug
+              w.writerow([o["id"], customer["name"] if customer else "", o["total"]])
+          return buf.getvalue()
+
+- id: perf-list-membership
+  split: test
+  title: "Deduplicate the newsletter import"
+  body: "The CSV from marketing has duplicates (about 200k rows)."
+  bugs: [{category: performance, severity: medium, what: "membership test on a growing list makes dedup quadratic"}]
+  before:
+    newsletter/importer.py: |
+      import csv
+
+
+      def read_rows(path: str) -> list[dict]:
+          with open(path, newline="") as fh:
+              return list(csv.DictReader(fh))
+  after:
+    newsletter/importer.py: |
+      import csv
+
+
+      def read_rows(path: str) -> list[dict]:
+          with open(path, newline="") as fh:
+              return list(csv.DictReader(fh))
+
+
+      def unique_subscribers(path: str) -> list[dict]:
+          seen: list[str] = []
+          out = []
+          for row in read_rows(path):
+              email = row["email"].strip().lower()
+              if email in seen:  #@bug
+                  continue
+              seen.append(email)
+              out.append(row)
+          return out
+
+- id: perf-config-in-loop
+  split: test
+  title: "Apply per-country tax rules when scoring transactions"
+  body: "Tax rules live in config/tax_rules.json, maintained by finance."
+  bugs: [{category: performance, severity: medium, what: "re-reads and parses the JSON file for every transaction"}]
+  before:
+    risk/scoring.py: |
+      def score(txn: dict) -> float:
+          base = 0.1 if txn["amount"] > 10_000 else 0.0
+          return base + (0.2 if txn.get("new_device") else 0.0)
+
+
+      def score_all(txns: list[dict]) -> list[float]:
+          return [score(t) for t in txns]
+  after:
+    risk/scoring.py: |
+      import json
+
+      RULES_PATH = "config/tax_rules.json"
+
+
+      def score(txn: dict, rules: dict | None = None) -> float:
+          base = 0.1 if txn["amount"] > 10_000 else 0.0
+          if rules and txn.get("country") in rules.get("high_risk", []):
+              base += 0.3
+          return base + (0.2 if txn.get("new_device") else 0.0)
+
+
+      def score_all(txns: list[dict]) -> list[float]:
+          scores = []
+          for t in txns:
+              with open(RULES_PATH) as fh:  #@bug
+                  rules = json.load(fh)  #@bug
+              scores.append(score(t, rules))
+          return scores
+
+- id: perf-load-whole-table
+  split: test
+  title: "User activity endpoint"
+  body: "Returns one user's events for the support tool."
+  bugs: [{category: performance, severity: medium, what: "loads the whole events table and filters in Python"}]
+  before:
+    support/activity.py: |
+      def recent_events(db, limit: int = 100) -> list[dict]:
+          rows = db.execute("SELECT * FROM events ORDER BY ts DESC LIMIT ?", (limit,)).fetchall()
+          return [dict(r) for r in rows]
+  after:
+    support/activity.py: |
+      def recent_events(db, limit: int = 100) -> list[dict]:
+          rows = db.execute("SELECT * FROM events ORDER BY ts DESC LIMIT ?", (limit,)).fetchall()
+          return [dict(r) for r in rows]
+
+
+      def user_events(db, user_id: int) -> list[dict]:
+          rows = db.execute("SELECT * FROM events ORDER BY ts DESC").fetchall()  #@bug
+          return [dict(r) for r in rows if r["user_id"] == user_id]  #@bug
+
+- id: perf-sequential-awaits
+  split: test
+  title: "Fetch prices from all suppliers"
+  body: "Compares prices across our 30 suppliers' APIs for the quote screen."
+  bugs: [{category: performance, severity: medium, what: "awaits independent HTTP calls one after another instead of concurrently"}]
+  before:
+    quotes/suppliers.py: |
+      import httpx
+
+      SUPPLIERS = {"acme": "https://acme.example.com", "globex": "https://globex.example.com"}
+
+
+      async def price_from(client: httpx.AsyncClient, base: str, sku: str) -> float | None:
+          r = await client.get(f"{base}/price/{sku}", timeout=10)
+          return r.json()["price"] if r.status_code == 200 else None
+  after:
+    quotes/suppliers.py: |
+      import httpx
+
+      SUPPLIERS = {"acme": "https://acme.example.com", "globex": "https://globex.example.com"}
+
+
+      async def price_from(client: httpx.AsyncClient, base: str, sku: str) -> float | None:
+          r = await client.get(f"{base}/price/{sku}", timeout=10)
+          return r.json()["price"] if r.status_code == 200 else None
+
+
+      async def all_prices(sku: str) -> dict[str, float | None]:
+          out = {}
+          async with httpx.AsyncClient() as client:
+              for name, base in SUPPLIERS.items():
+                  out[name] = await price_from(client, base, sku)  #@bug
+          return out
+
+- id: rel-no-timeout
+  split: dev
+  title: "Sync exchange rates hourly"
+  body: "Worker job pulls rates from the central bank feed."
+  bugs: [{category: reliability, severity: medium, what: "HTTP call without a timeout can hang the worker forever"}]
+  before:
+    jobs/rates.py: |
+      RATES_URL = "https://rates.example.org/latest"
+
+
+      def parse_rates(payload: dict) -> dict[str, float]:
+          return {k: float(v) for k, v in payload["rates"].items()}
+  after:
+    jobs/rates.py: |
+      import requests
+
+      RATES_URL = "https://rates.example.org/latest"
+
+
+      def parse_rates(payload: dict) -> dict[str, float]:
+          return {k: float(v) for k, v in payload["rates"].items()}
+
+
+      def sync_rates(store) -> int:
+          resp = requests.get(RATES_URL)  #@bug
+          resp.raise_for_status()
+          rates = parse_rates(resp.json())
+          store.save_rates(rates)
+          return len(rates)
+
+- id: rel-swallowed-payment-error
+  split: test
+  title: "Retry-safe payment capture"
+  body: "Capture can fail transiently; don't crash the checkout worker."
+  bugs: [{category: reliability, severity: high, what: "exception swallowed, then the order is marked paid anyway"}]
+  before:
+    checkout/capture.py: |
+      def capture(order, gateway) -> None:
+          gateway.capture(order.payment_id, order.total)
+          order.status = "paid"
+          order.save()
+  after:
+    checkout/capture.py: |
+      import logging
+
+      log = logging.getLogger(__name__)
+
+
+      def capture(order, gateway) -> None:
+          try:
+              gateway.capture(order.payment_id, order.total)
+          except Exception:  #@bug
+              pass  #@bug
+          order.status = "paid"  #@bug
+          order.save()
+
+- id: rel-unclosed-files
+  split: test
+  title: "Merge daily shard files"
+  body: "The nightly job writes ~5,000 shard files; this merges them into one list."
+  bugs: [{category: reliability, severity: medium, what: "opens thousands of files without closing them"}]
+  before:
+    etl/merge.py: |
+      import glob
+      import json
+
+
+      def shard_paths(folder: str) -> list[str]:
+          return sorted(glob.glob(f"{folder}/*.json"))
+  after:
+    etl/merge.py: |
+      import glob
+      import json
+
+
+      def shard_paths(folder: str) -> list[str]:
+          return sorted(glob.glob(f"{folder}/*.json"))
+
+
+      def merge_shards(folder: str) -> list[dict]:
+          rows: list[dict] = []
+          for path in shard_paths(folder):
+              fh = open(path)  #@bug
+              rows.extend(json.load(fh))
+          return rows
+
+- id: rel-missing-await
+  split: test
+  title: "Notify customers when an order ships"
+  body: "Sends a push notification from the shipping webhook."
+  bugs: [{category: reliability, severity: high, what: "coroutine is never awaited, so the notification is never sent"}]
+  before:
+    notify/shipping.py: |
+      async def mark_shipped(order, db) -> None:
+          order.status = "shipped"
+          await db.save(order)
+  after:
+    notify/shipping.py: |
+      async def mark_shipped(order, db, push) -> None:
+          order.status = "shipped"
+          await db.save(order)
+          push.send(order.customer_id, f"Your order {order.id} is on its way")  #@bug
+
+
+      class PushClient:
+          def __init__(self, http):
+              self.http = http
+
+          async def send(self, customer_id: int, text: str) -> None:
+              await self.http.post("/push", json={"to": customer_id, "text": text})
+
+- id: rel-hot-retry-loop
+  split: test
+  title: "Make the inventory sync resilient"
+  body: "The supplier API is flaky, so retry until it works."
+  bugs: [{category: reliability, severity: high, what: "retries forever with no delay or limit, hammering the API and hanging the job"}]
+  before:
+    inventory/sync.py: |
+      def fetch_stock(client, sku: str) -> int:
+          return client.get_stock(sku)
+  after:
+    inventory/sync.py: |
+      import logging
+
+      log = logging.getLogger(__name__)
+
+
+      def fetch_stock(client, sku: str) -> int:
+          while True:  #@bug
+              try:
+                  return client.get_stock(sku)
+              except ConnectionError as exc:
+                  log.warning("stock fetch failed for %s: %s", sku, exc)
+                  continue  #@bug

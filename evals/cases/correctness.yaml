@@ -1,0 +1,300 @@
+# Planted correctness bugs (wrong results or crashes). "#@bug" marks the ground-truth lines.
+- id: cor-pagination-off-by-one
+  split: dev
+  title: "Paginate the orders list"
+  body: "The orders page was loading everything; this adds page/size parameters."
+  bugs: [{category: correctness, severity: medium, what: "slice end drops the last item of every page"}]
+  before:
+    orders/listing.py: |
+      def list_orders(orders: list[dict]) -> list[dict]:
+          return sorted(orders, key=lambda o: o["created_at"], reverse=True)
+  after:
+    orders/listing.py: |
+      def list_orders(orders: list[dict], page: int = 1, size: int = 20) -> dict:
+          if page < 1 or size < 1:
+              raise ValueError("page and size must be positive")
+          ordered = sorted(orders, key=lambda o: o["created_at"], reverse=True)
+          start = (page - 1) * size
+          items = ordered[start : start + size - 1]  #@bug
+          return {"page": page, "size": size, "total": len(ordered), "items": items}
+
+- id: cor-mutable-default
+  split: test
+  title: "Collect validation errors"
+  body: "Validators now accumulate all errors instead of stopping at the first."
+  bugs: [{category: correctness, severity: medium, what: "mutable default list shared across calls"}]
+  before:
+    forms/validate.py: |
+      def validate_email(value: str) -> str | None:
+          return None if "@" in value else "invalid email"
+  after:
+    forms/validate.py: |
+      def validate_email(value: str) -> str | None:
+          return None if "@" in value else "invalid email"
+
+
+      def validate_form(data: dict, errors: list[str] = []) -> list[str]:  #@bug
+          if not data.get("name"):
+              errors.append("name is required")
+          err = validate_email(data.get("email", ""))
+          if err:
+              errors.append(err)
+          return errors
+
+- id: cor-is-literal
+  split: test
+  title: "Hide archived projects"
+  body: "Archived projects no longer show in the sidebar."
+  bugs: [{category: correctness, severity: medium, what: "string compared with 'is' instead of =="}]
+  before:
+    projects/sidebar.py: |
+      def visible_projects(projects: list[dict]) -> list[dict]:
+          return [p for p in projects if not p.get("deleted")]
+  after:
+    projects/sidebar.py: |
+      def visible_projects(projects: list[dict]) -> list[dict]:
+          out = []
+          for p in projects:
+              if p.get("deleted"):
+                  continue
+              if p.get("status") is "archived":  #@bug
+                  continue
+              out.append(p)
+          return out
+
+- id: cor-floor-average
+  split: test
+  title: "Show average rating on product cards"
+  body: "Adds the average star rating next to the price."
+  bugs: [{category: correctness, severity: medium, what: "floor division truncates the average rating"}]
+  before:
+    catalog/ratings.py: |
+      def rating_count(ratings: list[int]) -> int:
+          return len(ratings)
+  after:
+    catalog/ratings.py: |
+      def rating_count(ratings: list[int]) -> int:
+          return len(ratings)
+
+
+      def average_rating(ratings: list[int]) -> float | None:
+          if not ratings:
+              return None
+          return sum(ratings) // len(ratings)  #@bug
+
+
+      def stars_label(ratings: list[int]) -> str:
+          avg = average_rating(ratings)
+          return "No ratings yet" if avg is None else f"{avg:.1f} / 5 ({len(ratings)} ratings)"
+
+- id: cor-naive-local-time
+  split: test
+  title: "Expire API tokens"
+  body: "Tokens now expire. expires_at is stored in UTC, like every timestamp in the DB."
+  bugs: [{category: correctness, severity: medium, what: "compares local time with a UTC timestamp"}]
+  before:
+    auth/tokens.py: |
+      from dataclasses import dataclass
+      from datetime import datetime
+
+
+      @dataclass
+      class ApiToken:
+          value: str
+          created_at: datetime
+  after:
+    auth/tokens.py: |
+      from dataclasses import dataclass
+      from datetime import datetime, timedelta
+
+
+      @dataclass
+      class ApiToken:
+          value: str
+          created_at: datetime
+          expires_at: datetime | None = None
+
+          def is_expired(self) -> bool:
+              if self.expires_at is None:
+                  return False
+              return datetime.now() > self.expires_at  #@bug
+
+
+      def default_expiry(created_at: datetime) -> datetime:
+          return created_at + timedelta(days=30)
+
+- id: cor-inverted-discount
+  split: dev
+  title: "Free-shipping threshold"
+  body: "Orders of 999 or more ship free."
+  bugs: [{category: correctness, severity: high, what: "condition inverted: small orders ship free, large ones pay"}]
+  before:
+    checkout/shipping.py: |
+      FLAT_SHIPPING = 79
+
+
+      def shipping_fee(order_total: float) -> float:
+          return FLAT_SHIPPING
+  after:
+    checkout/shipping.py: |
+      FLAT_SHIPPING = 79
+      FREE_SHIPPING_FROM = 999
+
+
+      def shipping_fee(order_total: float) -> float:
+          if order_total < FREE_SHIPPING_FROM:  #@bug
+              return 0
+          return FLAT_SHIPPING
+
+- id: cor-late-binding
+  split: test
+  title: "Register a handler per webhook event"
+  body: "One handler per event type instead of a big if/else."
+  bugs: [{category: correctness, severity: medium, what: "lambdas capture the loop variable, so every handler uses the last event name"}]
+  before:
+    hooks/registry.py: |
+      def dispatch(event_type: str, payload: dict, handle) -> None:
+          handle(event_type, payload)
+  after:
+    hooks/registry.py: |
+      EVENTS = ["order.created", "order.paid", "order.refunded"]
+
+
+      def dispatch(event_type: str, payload: dict, handle) -> None:
+          handle(event_type, payload)
+
+
+      def build_handlers(handle) -> dict:
+          handlers = {}
+          for name in EVENTS:
+              handlers[name] = lambda payload: handle(name, payload)  #@bug
+          return handlers
+
+- id: cor-remove-while-iterating
+  split: test
+  title: "Drop expired items from the cart"
+  body: "Flash-sale items expire after 15 minutes."
+  bugs: [{category: correctness, severity: medium, what: "removing from a list while iterating over it skips items"}]
+  before:
+    shop/expiry.py: |
+      from datetime import datetime, timedelta, timezone
+
+      HOLD = timedelta(minutes=15)
+
+
+      def is_expired(item: dict, now: datetime) -> bool:
+          return item.get("flash") and now - item["added_at"] > HOLD
+  after:
+    shop/expiry.py: |
+      from datetime import datetime, timedelta, timezone
+
+      HOLD = timedelta(minutes=15)
+
+
+      def is_expired(item: dict, now: datetime) -> bool:
+          return item.get("flash") and now - item["added_at"] > HOLD
+
+
+      def drop_expired(items: list[dict], now: datetime | None = None) -> list[dict]:
+          now = now or datetime.now(timezone.utc)
+          for item in items:  #@bug
+              if is_expired(item, now):
+                  items.remove(item)  #@bug
+          return items
+
+- id: cor-default-now
+  split: test
+  title: "Audit log entries"
+  body: "Every admin action now writes an audit entry."
+  bugs: [{category: correctness, severity: medium, what: "datetime.now() evaluated once at import time as a default"}]
+  before:
+    audit/log.py: |
+      import json
+
+
+      def to_json(entry: dict) -> str:
+          return json.dumps(entry, default=str)
+  after:
+    audit/log.py: |
+      import json
+      from datetime import datetime, timezone
+
+
+      def to_json(entry: dict) -> str:
+          return json.dumps(entry, default=str)
+
+
+      def audit_entry(actor: str, action: str, at: datetime = datetime.now(timezone.utc)) -> dict:  #@bug
+          return {"actor": actor, "action": action, "at": at}
+
+- id: cor-percent-change
+  split: test
+  title: "Week-over-week revenue change on the dashboard"
+  body: "Adds the WoW % next to the revenue tile."
+  bugs: [{category: correctness, severity: medium, what: "percentage change divides by the new value instead of the old one"}]
+  before:
+    dashboard/metrics.py: |
+      def total_revenue(rows: list[dict]) -> float:
+          return sum(r["amount"] for r in rows)
+  after:
+    dashboard/metrics.py: |
+      def total_revenue(rows: list[dict]) -> float:
+          return sum(r["amount"] for r in rows)
+
+
+      def pct_change(previous: float, current: float) -> float | None:
+          if previous == 0:
+              return None
+          return (current - previous) / current * 100  #@bug
+
+
+      def wow_label(prev_rows: list[dict], cur_rows: list[dict]) -> str:
+          change = pct_change(total_revenue(prev_rows), total_revenue(cur_rows))
+          return "n/a" if change is None else f"{change:+.1f}% vs last week"
+
+- id: cor-missing-branch
+  split: test
+  title: "Loyalty tier discounts"
+  body: "Gold gets 20%, silver 10%. Bronze and new customers pay full price."
+  bugs: [{category: correctness, severity: high, what: "returns None for other tiers, so the price calculation raises TypeError"}]
+  before:
+    loyalty/pricing.py: |
+      def final_price(price: float) -> float:
+          return round(price, 2)
+  after:
+    loyalty/pricing.py: |
+      def tier_discount(tier: str) -> float:
+          if tier == "gold":
+              return 0.20
+          elif tier == "silver":  #@bug
+              return 0.10  #@bug
+
+
+      def final_price(price: float, tier: str = "bronze") -> float:
+          return round(price * (1 - tier_discount(tier)), 2)  #@bug
+
+- id: cor-top-n-order
+  split: test
+  title: "Leaderboard: top 3 sellers"
+  body: "Shows the three best sellers this month on the sales page."
+  bugs: [{category: correctness, severity: high, what: "sorts ascending, so it returns the three lowest sellers"}]
+  before:
+    sales/leaderboard.py: |
+      def monthly_totals(sales: list[dict]) -> dict[str, float]:
+          totals: dict[str, float] = {}
+          for s in sales:
+              totals[s["seller"]] = totals.get(s["seller"], 0.0) + s["amount"]
+          return totals
+  after:
+    sales/leaderboard.py: |
+      def monthly_totals(sales: list[dict]) -> dict[str, float]:
+          totals: dict[str, float] = {}
+          for s in sales:
+              totals[s["seller"]] = totals.get(s["seller"], 0.0) + s["amount"]
+          return totals
+
+
+      def top_sellers(sales: list[dict], n: int = 3) -> list[tuple[str, float]]:
+          totals = monthly_totals(sales)
+          ranked = sorted(totals.items(), key=lambda kv: kv[1])  #@bug
+          return ranked[:n]  #@bug

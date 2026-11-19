@@ -1,0 +1,49 @@
+name: "AI PR Review (Python)"
+description: "Reviews the Python lines a pull request changes: ruff + bandit for evidence, an LLM for judgement, a second pass to confirm, inline comments."
+author: "Tanzil Ali Rizvi"
+branding:
+  icon: "eye"
+  color: "green"
+inputs:
+  groq-api-key:
+    description: "Groq API key (free tier works). Without it the action runs ruff + bandit only."
+    required: false
+  github-token:
+    description: "Token used to read the PR and post the review."
+    required: false
+    default: ${{ github.token }}
+  max-comments:
+    description: "Most inline comments to post per review."
+    required: false
+    default: "15"
+  verify:
+    description: "Run the second pass that must confirm each finding (true/false)."
+    required: false
+    default: "true"
+  fail-on:
+    description: "Fail the check if a finding is at or above this severity: none, high, medium or low."
+    required: false
+    default: "none"
+  skip-drafts:
+    description: "Skip draft pull requests (true/false)."
+    required: false
+    default: "true"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install the reviewer
+      shell: bash
+      run: pip install --quiet "${{ github.action_path }}[llm]"
+    - name: Review the pull request
+      shell: bash
+      env:
+        GROQ_API_KEY: ${{ inputs.groq-api-key }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_MAX_COMMENTS: ${{ inputs.max-comments }}
+        INPUT_VERIFY: ${{ inputs.verify }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_SKIP_DRAFTS: ${{ inputs.skip-drafts }}
+      run: python -m reviewer.action

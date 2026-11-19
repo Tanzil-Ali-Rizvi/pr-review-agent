@@ -1,0 +1,54 @@
+name: Benchmark
+on:
+  workflow_dispatch:
+    inputs:
+      split:
+        description: "dev, test or all"
+        default: test
+      fresh:
+        description: "Discard saved results and start over"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "41 20 * * *"  # 02:11 IST: resumes an unfinished run after the free-tier daily limit resets
+
+permissions:
+  contents: write
+
+concurrency:
+  group: benchmark
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[llm,eval]"
+      - name: Skip if the scheduled run has nothing left to do
+        id: check
+        run: |
+          SPLIT="${{ inputs.split || 'test' }}"
+          echo "split=$SPLIT" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "schedule" ] && [ -f "results/bench_$SPLIT.md" ] && ! grep -q "still to run" "results/bench_$SPLIT.md"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "${{ github.event_name }}" = "schedule" ] && [ ! -f "results/bench_$SPLIT.md" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run
+        if: steps.check.outputs.skip != 'true'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python -m reviewer.bench --split "${{ steps.check.outputs.split }}" ${{ inputs.fresh && '--fresh' || '' }}
+      - name: Commit results
+        if: always() && steps.check.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/ || true
+          git diff --cached --quiet || (git commit -m "Benchmark results from CI" && git pull --rebase && git push)
