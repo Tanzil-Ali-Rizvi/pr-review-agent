@@ -19,6 +19,7 @@ class FileDiff:
     status: str = "modified"  # added | modified | removed | renamed
     added: dict[int, str] = field(default_factory=dict)  # new-file line number -> text, for + lines
     hunks: list[tuple[int, int]] = field(default_factory=list)  # (first, last) new-file lines of each hunk
+    removed: dict[int, list[str]] = field(default_factory=dict)  # removed lines, keyed by the next new-file line
 
     @property
     def is_python(self) -> bool:
@@ -62,7 +63,7 @@ def parse(diff_text: str) -> list[FileDiff]:
             cur.added[new_line] = raw[1:]
             new_line += 1
         elif raw.startswith("-"):
-            pass
+            cur.removed.setdefault(new_line, []).append(raw[1:])
         elif raw.startswith("\\"):
             pass  # "\ No newline at end of file"
         else:
@@ -98,7 +99,8 @@ def make_diff(before: dict[str, str], after: dict[str, str], context: int = 3) -
 
 
 def numbered_view(fd: FileDiff, content: str, context: int = 6) -> str:
-    """The new version of the file around each hunk, with line numbers; changed lines are marked with '+'.
+    """The new version of the file around each hunk, with line numbers. Added lines are marked '+'; removed lines are
+    shown (without numbers) as '-', so the model can tell what the pull request actually changed.
 
     The model comments by line number, so it must see the same numbers GitHub uses.
     """
@@ -110,7 +112,11 @@ def numbered_view(fd: FileDiff, content: str, context: int = 6) -> str:
     for n in sorted(keep):
         if prev and n != prev + 1:
             out.append("     ...")
+        for old in fd.removed.get(n, []):
+            out.append(f"     - {old}")
         mark = "+" if n in fd.added else " "
         out.append(f"{n:>4} {mark} {lines[n - 1]}")
         prev = n
+    for old in fd.removed.get(len(lines) + 1, []):
+        out.append(f"     - {old}")
     return "\n".join(out)

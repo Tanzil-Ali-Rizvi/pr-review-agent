@@ -3,7 +3,7 @@
   split: dev
   title: "Show customer names on the orders export"
   body: "Finance wanted names, not IDs, in the CSV."
-  bugs: [{category: performance, severity: medium, what: "one database query per order (N+1)"}]
+  bugs: [{category: performance, severity: medium, what: "one database query per order (N+1)", keywords: ["n+1", "n + 1", "per order", "each order", "every order", "per row", "query per", "loop", "join", "batch", "round trip", "round-trip"]}]
   before:
     exports/orders_csv.py: |
       import csv
@@ -38,7 +38,7 @@
   split: test
   title: "Deduplicate the newsletter import"
   body: "The CSV from marketing has duplicates (about 200k rows)."
-  bugs: [{category: performance, severity: medium, what: "membership test on a growing list makes dedup quadratic"}]
+  bugs: [{category: performance, severity: medium, what: "membership test on a growing list makes dedup quadratic", keywords: ["list", "o(n", "quadratic", "set", "linear"]}]
   before:
     newsletter/importer.py: |
       import csv
@@ -72,7 +72,7 @@
   split: test
   title: "Apply per-country tax rules when scoring transactions"
   body: "Tax rules live in config/tax_rules.json, maintained by finance."
-  bugs: [{category: performance, severity: medium, what: "re-reads and parses the JSON file for every transaction"}]
+  bugs: [{category: performance, severity: medium, what: "re-reads and parses the JSON file for every transaction", keywords: ["every transaction", "each transaction", "per transaction", "loop", "re-read", "repeated", "every iteration", "each iteration", "once", "every call"]}]
   before:
     risk/scoring.py: |
       def score(txn: dict) -> float:
@@ -108,7 +108,7 @@
   split: test
   title: "User activity endpoint"
   body: "Returns one user's events for the support tool."
-  bugs: [{category: performance, severity: medium, what: "loads the whole events table and filters in Python"}]
+  bugs: [{category: performance, severity: medium, what: "loads the whole events table and filters in Python", keywords: ["entire", "whole table", "all rows", "all events", "where", "in python", "full table", "fetchall", "memory", "every row"]}]
   before:
     support/activity.py: |
       def recent_events(db, limit: int = 100) -> list[dict]:
@@ -129,7 +129,7 @@
   split: test
   title: "Fetch prices from all suppliers"
   body: "Compares prices across our 30 suppliers' APIs for the quote screen."
-  bugs: [{category: performance, severity: medium, what: "awaits independent HTTP calls one after another instead of concurrently"}]
+  bugs: [{category: performance, severity: medium, what: "awaits independent HTTP calls one after another instead of concurrently", keywords: ["sequential", "one after another", "concurren", "gather", "parallel", "serial", "one at a time"]}]
   before:
     quotes/suppliers.py: |
       import httpx
@@ -163,7 +163,7 @@
   split: dev
   title: "Sync exchange rates hourly"
   body: "Worker job pulls rates from the central bank feed."
-  bugs: [{category: reliability, severity: medium, what: "HTTP call without a timeout can hang the worker forever"}]
+  bugs: [{category: reliability, severity: medium, what: "HTTP call without a timeout can hang the worker forever", keywords: ["timeout", "hang", "block"]}]
   before:
     jobs/rates.py: |
       RATES_URL = "https://rates.example.org/latest"
@@ -193,7 +193,7 @@
   split: test
   title: "Retry-safe payment capture"
   body: "Capture can fail transiently; don't crash the checkout worker."
-  bugs: [{category: reliability, severity: high, what: "exception swallowed, then the order is marked paid anyway"}]
+  bugs: [{category: reliability, severity: high, what: "exception swallowed, then the order is marked paid anyway", keywords: ["swallow", "silent", "except", "paid", "ignore", "suppress"]}]
   before:
     checkout/capture.py: |
       def capture(order, gateway) -> None:
@@ -219,7 +219,7 @@
   split: test
   title: "Merge daily shard files"
   body: "The nightly job writes ~5,000 shard files; this merges them into one list."
-  bugs: [{category: reliability, severity: medium, what: "opens thousands of files without closing them"}]
+  bugs: [{category: reliability, severity: medium, what: "opens thousands of files without closing them", keywords: ["close", "file handle", "descriptor", "leak", "context manager", "with "]}]
   before:
     etl/merge.py: |
       import glob
@@ -249,7 +249,7 @@
   split: test
   title: "Notify customers when an order ships"
   body: "Sends a push notification from the shipping webhook."
-  bugs: [{category: reliability, severity: high, what: "coroutine is never awaited, so the notification is never sent"}]
+  bugs: [{category: reliability, severity: high, what: "coroutine is never awaited, so the notification is never sent", keywords: ["await", "coroutine", "never sent", "never run"]}]
   before:
     notify/shipping.py: |
       async def mark_shipped(order, db) -> None:
@@ -274,7 +274,7 @@
   split: test
   title: "Make the inventory sync resilient"
   body: "The supplier API is flaky, so retry until it works."
-  bugs: [{category: reliability, severity: high, what: "retries forever with no delay or limit, hammering the API and hanging the job"}]
+  bugs: [{category: reliability, severity: high, what: "retries forever with no delay or limit, hammering the API and hanging the job", keywords: ["infinite", "forever", "backoff", "delay", "sleep", "limit", "retr"]}]
   before:
     inventory/sync.py: |
       def fetch_stock(client, sku: str) -> int:

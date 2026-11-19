@@ -3,7 +3,7 @@
   split: dev
   title: "Paginate the orders list"
   body: "The orders page was loading everything; this adds page/size parameters."
-  bugs: [{category: correctness, severity: medium, what: "slice end drops the last item of every page"}]
+  bugs: [{category: correctness, severity: medium, what: "slice end drops the last item of every page", keywords: ["off-by-one", "off by one", "last item", "drops", "- 1", "one fewer", "one item", "omits"]}]
   before:
     orders/listing.py: |
       def list_orders(orders: list[dict]) -> list[dict]:
@@ -22,7 +22,7 @@
   split: test
   title: "Collect validation errors"
   body: "Validators now accumulate all errors instead of stopping at the first."
-  bugs: [{category: correctness, severity: medium, what: "mutable default list shared across calls"}]
+  bugs: [{category: correctness, severity: medium, what: "mutable default list shared across calls", keywords: ["mutable", "default", "shared"]}]
   before:
     forms/validate.py: |
       def validate_email(value: str) -> str | None:
@@ -45,7 +45,7 @@
   split: test
   title: "Hide archived projects"
   body: "Archived projects no longer show in the sidebar."
-  bugs: [{category: correctness, severity: medium, what: "string compared with 'is' instead of =="}]
+  bugs: [{category: correctness, severity: medium, what: "string compared with 'is' instead of ==", keywords: ["identity", "==", "'is'", "`is`", "\"is\"", "is comparison", "is operator", "is not equality"]}]
   before:
     projects/sidebar.py: |
       def visible_projects(projects: list[dict]) -> list[dict]:
@@ -66,7 +66,7 @@
   split: test
   title: "Show average rating on product cards"
   body: "Adds the average star rating next to the price."
-  bugs: [{category: correctness, severity: medium, what: "floor division truncates the average rating"}]
+  bugs: [{category: correctness, severity: medium, what: "floor division truncates the average rating", keywords: ["floor", "integer division", "//", "truncat", "rounds down", "integer"]}]
   before:
     catalog/ratings.py: |
       def rating_count(ratings: list[int]) -> int:
@@ -91,7 +91,7 @@
   split: test
   title: "Expire API tokens"
   body: "Tokens now expire. expires_at is stored in UTC, like every timestamp in the DB."
-  bugs: [{category: correctness, severity: medium, what: "compares local time with a UTC timestamp"}]
+  bugs: [{category: correctness, severity: medium, what: "compares local time with a UTC timestamp", keywords: ["utc", "timezone", "time zone", "local time", "naive", "offset"]}]
   before:
     auth/tokens.py: |
       from dataclasses import dataclass
@@ -127,7 +127,7 @@
   split: dev
   title: "Free-shipping threshold"
   body: "Orders of 999 or more ship free."
-  bugs: [{category: correctness, severity: high, what: "condition inverted: small orders ship free, large ones pay"}]
+  bugs: [{category: correctness, severity: high, what: "condition inverted: small orders ship free, large ones pay", keywords: ["invert", "reversed", "backwards", "opposite", "free shipping", "wrong way", "swapped"]}]
   before:
     checkout/shipping.py: |
       FLAT_SHIPPING = 79
@@ -150,7 +150,7 @@
   split: test
   title: "Register a handler per webhook event"
   body: "One handler per event type instead of a big if/else."
-  bugs: [{category: correctness, severity: medium, what: "lambdas capture the loop variable, so every handler uses the last event name"}]
+  bugs: [{category: correctness, severity: medium, what: "lambdas capture the loop variable, so every handler uses the last event name", keywords: ["late binding", "late-binding", "closure", "loop variable", "captur", "last event", "last value"]}]
   before:
     hooks/registry.py: |
       def dispatch(event_type: str, payload: dict, handle) -> None:
@@ -174,7 +174,7 @@
   split: test
   title: "Drop expired items from the cart"
   body: "Flash-sale items expire after 15 minutes."
-  bugs: [{category: correctness, severity: medium, what: "removing from a list while iterating over it skips items"}]
+  bugs: [{category: correctness, severity: medium, what: "removing from a list while iterating over it skips items", keywords: ["while iterating", "during iteration", "skip", "modif", "mutat", "remove"]}]
   before:
     shop/expiry.py: |
       from datetime import datetime, timedelta, timezone
@@ -206,7 +206,7 @@
   split: test
   title: "Audit log entries"
   body: "Every admin action now writes an audit entry."
-  bugs: [{category: correctness, severity: medium, what: "datetime.now() evaluated once at import time as a default"}]
+  bugs: [{category: correctness, severity: medium, what: "datetime.now() evaluated once at import time as a default", keywords: ["default", "import time", "evaluated once", "definition", "stale", "same timestamp", "once"]}]
   before:
     audit/log.py: |
       import json
@@ -231,7 +231,7 @@
   split: test
   title: "Week-over-week revenue change on the dashboard"
   body: "Adds the WoW % next to the revenue tile."
-  bugs: [{category: correctness, severity: medium, what: "percentage change divides by the new value instead of the old one"}]
+  bugs: [{category: correctness, severity: medium, what: "percentage change divides by the new value instead of the old one", keywords: ["denominator", "divide", "divid", "previous", "old value", "base", "percent"]}]
   before:
     dashboard/metrics.py: |
       def total_revenue(rows: list[dict]) -> float:
@@ -256,7 +256,7 @@
   split: test
   title: "Loyalty tier discounts"
   body: "Gold gets 20%, silver 10%. Bronze and new customers pay full price."
-  bugs: [{category: correctness, severity: high, what: "returns None for other tiers, so the price calculation raises TypeError"}]
+  bugs: [{category: correctness, severity: high, what: "returns None for other tiers, so the price calculation raises TypeError", keywords: ["none", "bronze", "other tier", "typeerror", "missing", "fall through", "unknown tier", "default"]}]
   before:
     loyalty/pricing.py: |
       def final_price(price: float) -> float:
@@ -277,7 +277,7 @@
   split: test
   title: "Leaderboard: top 3 sellers"
   body: "Shows the three best sellers this month on the sales page."
-  bugs: [{category: correctness, severity: high, what: "sorts ascending, so it returns the three lowest sellers"}]
+  bugs: [{category: correctness, severity: high, what: "sorts ascending, so it returns the three lowest sellers", keywords: ["ascending", "lowest", "reverse", "descending", "smallest", "bottom", "worst"]}]
   before:
     sales/leaderboard.py: |
       def monthly_totals(sales: list[dict]) -> dict[str, float]:

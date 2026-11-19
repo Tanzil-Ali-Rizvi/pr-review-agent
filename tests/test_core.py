@@ -179,9 +179,12 @@ def test_scoring_tolerance_and_acceptable_lines():
     path = next(iter(c.bug_lines))
     bug = min(c.bug_lines[path])
     ok = min(c.ok_lines[path])
-    s = score_findings(c, [{"path": path, "line": bug + 2, "title": "t"}, {"path": path, "line": ok, "title": "i"},
-                           {"path": "other.py", "line": 1, "title": "x"}])  # fmt: skip
+    s = score_findings(c, [{"path": path, "line": bug + 2, "title": "Permission check bypassed for svc- users"},
+                           {"path": path, "line": ok, "title": "i"}, {"path": "other.py", "line": 1, "title": "x"}])  # fmt: skip
     assert s["caught"] and s["hits"] == 1 and s["acceptable"] == 1 and s["false"] == 1
+    # The right line but a different complaint is not a hit.
+    wrong = score_findings(c, [{"path": path, "line": bug, "title": "Missing type hints", "explanation": ""}])
+    assert not wrong["caught"] and wrong["false"] == 1
 
 
 @pytest.mark.parametrize("cid", ["clean-parameterised-sql", "clean-subprocess-list"])
@@ -189,3 +192,35 @@ async def test_rule_findings_never_fire_on_safe_clean_code(cid):
     c = next(c for c in load_cases(CASES) if c.id == cid)
     r = await review_diff(make_diff(c.before, c.after), c.after, ScriptedLLM([{"findings": []}]))
     assert r.findings == []
+
+
+async def test_claimed_syntax_errors_are_dropped_when_the_file_parses():
+    llm = ScriptedLLM([{"findings": [
+        {"line": 6, "severity": "high", "category": "correctness", "title": "Indentation error causes SyntaxError", "explanation": "x"},
+    ]}])  # fmt: skip
+    r = await review_diff(diff(), AFTER, llm, verify=False)
+    assert not any("Indentation" in f.title for f in r.findings)
+    assert any(why.startswith("claims a syntax error") for _, why in r.dropped)
+    assert "parses as valid Python" in llm.seen[0][1]
+
+
+async def test_verifier_needs_real_and_caused_by_change():
+    llm = ScriptedLLM([
+        {"findings": [
+            {"line": 6, "severity": "high", "category": "security", "title": "SQL injection", "explanation": "e"},
+            {"line": 2, "severity": "medium", "category": "correctness", "title": "Old problem", "explanation": "e"},
+        ]},
+        {"verdicts": [{"id": "F1", "real": True, "caused_by_change": True}, {"id": "F2", "real": True, "caused_by_change": False}]},
+    ])  # fmt: skip
+    r = await review_diff(diff(), AFTER, llm)
+    titles = {f.title for f in r.findings}
+    assert "SQL injection" in titles and "Old problem" not in titles
+
+
+def test_view_shows_removed_lines_without_numbers():
+    from reviewer.diff import numbered_view
+
+    fd = next(f for f in parse(diff()) if f.path == "app/db.py")
+    view = numbered_view(fd, AFTER["app/db.py"])
+    assert "     -     return conn.execute('SELECT 1 WHERE id=?', (uid,))" in view
+    assert "   6 +     return conn.execute(f'SELECT * FROM users WHERE id={uid}')" in view
