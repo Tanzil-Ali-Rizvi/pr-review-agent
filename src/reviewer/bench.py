@@ -3,7 +3,9 @@
 Each case is a small realistic PR (before/after files). Lines ending in "#@bug" are planted bugs; "#@ok" marks lines
 where a comment is acceptable but not required. Markers are stripped before anything is reviewed.
 
-A comment is a hit if it is in the right file within 2 lines of a planted bug. Three systems are scored from one run:
+A comment is a hit if it is in the right file, within 2 lines of a planted bug, and names the problem (one of the bug's
+keywords appears in its title, explanation or suggestion), so a different complaint about the same line does not
+count. Three systems are scored from one run:
   linters    ruff + bandit only (no LLM)
   llm        LLM reviewer with linter evidence, before the verification pass
   llm+verify the full pipeline (what the GitHub Action posts)
@@ -103,8 +105,16 @@ def _near(lines: set[int], line: int) -> bool:
     return any(abs(line - n) <= TOLERANCE for n in lines)
 
 
+def _names_bug(case: Case, f: dict) -> bool:
+    words = [w.lower() for b in case.bugs for w in b.get("keywords", [])]
+    if not words:
+        return True
+    text = f"{f.get('title', '')} {f.get('explanation', '')} {f.get('suggestion', '')}".lower()
+    return any(w in text for w in words)
+
+
 def score_findings(case: Case, findings: list[dict]) -> dict[str, Any]:
-    hits = [f for f in findings if _near(case.bug_lines.get(f["path"], set()), f["line"])]
+    hits = [f for f in findings if _near(case.bug_lines.get(f["path"], set()), f["line"]) and _names_bug(case, f)]
     ok = [f for f in findings if f not in hits and _near(case.ok_lines.get(f["path"], set()), f["line"])]
     false = [f for f in findings if f not in hits and f not in ok]
     return {"caught": bool(hits), "comments": len(findings), "hits": len(hits), "acceptable": len(ok),
@@ -113,7 +123,8 @@ def score_findings(case: Case, findings: list[dict]) -> dict[str, Any]:
 
 def _slim(fs: list[Finding]) -> list[dict]:
     return [{"path": f.path, "line": f.line, "severity": f.severity, "category": f.category, "title": f.title,
-             "source": f.source, "verdict": f.verdict} for f in fs]  # fmt: skip
+             "explanation": f.explanation[:400], "suggestion": f.suggestion[:200], "source": f.source,
+             "verdict": f.verdict, "verdict_reason": f.verdict_reason[:200]} for f in fs]  # fmt: skip
 
 
 async def run_case(case: Case, llm) -> dict[str, Any]:
@@ -172,7 +183,8 @@ def to_md(summary: dict, rows: list[dict], cases: dict[str, Case], split: str, p
         "# Planted-bug benchmark",
         "",
         f"Split: **{split}** · {summary['cases']} pull requests ({summary['bug_cases']} with a planted bug, "
-        f"{summary['clean_cases']} clean). A comment is a hit if it is within {TOLERANCE} lines of a planted bug.",
+        f"{summary['clean_cases']} clean). A comment is a hit if it is within {TOLERANCE} lines of a planted bug "
+        "and names the problem (keyword match), so a different complaint about the same line does not count.",
         "",
         "| | Linters only (ruff + bandit) | LLM reviewer | LLM + verifier (posted) |",
         "|---|---|---|---|",
