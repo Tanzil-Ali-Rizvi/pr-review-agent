@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Benchmark cases contain fake, planted secrets on purpose"
+paths = ['''evals/cases/.*\.yaml''']

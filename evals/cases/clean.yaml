@@ -1,0 +1,285 @@
+# Clean pull requests: no planted bugs. Any comment here is a false alarm. Several deliberately look suspicious
+# (SQL, subprocess, asserts, requests) while being written correctly.
+- id: clean-rename-docstring
+  split: dev
+  title: "Clarify names in the invoice helper"
+  body: "Pure rename and docstrings, no behaviour change."
+  bugs: []
+  before:
+    billing/invoice.py: |
+      def calc(items, r):
+          t = sum(i["qty"] * i["price"] for i in items)
+          return round(t * (1 + r), 2)
+  after:
+    billing/invoice.py: |
+      def invoice_total(items: list[dict], tax_rate: float) -> float:
+          """Total of quantity x unit price for every line, plus tax, rounded to paise."""
+          subtotal = sum(item["qty"] * item["price"] for item in items)
+          return round(subtotal * (1 + tax_rate), 2)
+
+- id: clean-type-hints-helper
+  split: test
+  title: "Type hints and a small parsing helper"
+  body: "Extracts the phone normalisation into its own function."
+  bugs: []
+  before:
+    contacts/normalise.py: |
+      import re
+
+
+      def clean_contact(c):
+          phone = re.sub(r"\D", "", c.get("phone", ""))
+          if len(phone) == 12 and phone.startswith("91"):
+              phone = phone[2:]
+          return {"name": c.get("name", "").strip(), "phone": phone}
+  after:
+    contacts/normalise.py: |
+      import re
+
+
+      def normalise_phone(raw: str) -> str:
+          """Digits only, without the +91 country code."""
+          phone = re.sub(r"\D", "", raw or "")
+          if len(phone) == 12 and phone.startswith("91"):
+              phone = phone[2:]
+          return phone
+
+
+      def clean_contact(c: dict) -> dict[str, str]:
+          return {"name": c.get("name", "").strip(), "phone": normalise_phone(c.get("phone", ""))}
+
+- id: clean-parameterised-sql
+  split: dev
+  title: "Filter invoices by status and date range"
+  body: "Adds optional filters to the invoices query."
+  bugs: []
+  before:
+    billing/queries.py: |
+      def list_invoices(conn, customer_id: int) -> list[dict]:
+          rows = conn.execute(
+              "SELECT id, status, issued_on, amount FROM invoices WHERE customer_id = ? ORDER BY issued_on DESC",
+              (customer_id,),
+          ).fetchall()
+          return [dict(r) for r in rows]
+  after:
+    billing/queries.py: |
+      ALLOWED_STATUS = {"draft", "sent", "paid", "void"}
+
+
+      def list_invoices(conn, customer_id: int, status: str | None = None, since=None, until=None) -> list[dict]:
+          clauses = ["customer_id = ?"]
+          params: list = [customer_id]
+          if status is not None:
+              if status not in ALLOWED_STATUS:
+                  raise ValueError(f"unknown status {status!r}")
+              clauses.append("status = ?")
+              params.append(status)
+          if since is not None:
+              clauses.append("issued_on >= ?")
+              params.append(since)
+          if until is not None:
+              clauses.append("issued_on < ?")
+              params.append(until)
+          sql = "SELECT id, status, issued_on, amount FROM invoices WHERE " + " AND ".join(clauses)
+          rows = conn.execute(sql + " ORDER BY issued_on DESC", params).fetchall()
+          return [dict(r) for r in rows]
+
+- id: clean-subprocess-list
+  split: test
+  title: "Compress nightly backups"
+  body: "Runs gzip on the dump file after the backup job."
+  bugs: []
+  before:
+    ops/backup.py: |
+      from pathlib import Path
+
+      BACKUP_DIR = Path("/var/backups/app")
+
+
+      def latest_dump() -> Path | None:
+          dumps = sorted(BACKUP_DIR.glob("*.sql"))
+          return dumps[-1] if dumps else None
+  after:
+    ops/backup.py: |
+      import subprocess
+      from pathlib import Path
+
+      BACKUP_DIR = Path("/var/backups/app")
+
+
+      def latest_dump() -> Path | None:
+          dumps = sorted(BACKUP_DIR.glob("*.sql"))
+          return dumps[-1] if dumps else None
+
+
+      def compress(dump: Path) -> Path:
+          subprocess.run(["gzip", "--force", "--", str(dump)], check=True, timeout=600)
+          return dump.with_suffix(dump.suffix + ".gz")
+
+- id: clean-logging-comprehension
+  split: test
+  title: "Log skipped rows in the importer"
+  body: "Makes the importer say which rows it skipped and why."
+  bugs: []
+  before:
+    etl/importer.py: |
+      def valid_rows(rows):
+          out = []
+          for r in rows:
+              if r.get("amount") is not None and r.get("date"):
+                  out.append(r)
+          return out
+  after:
+    etl/importer.py: |
+      import logging
+
+      log = logging.getLogger(__name__)
+
+
+      def is_valid(row: dict) -> bool:
+          return row.get("amount") is not None and bool(row.get("date"))
+
+
+      def valid_rows(rows: list[dict]) -> list[dict]:
+          kept = [r for r in rows if is_valid(r)]
+          skipped = len(rows) - len(kept)
+          if skipped:
+              log.info("skipped %d of %d rows with no amount or date", skipped, len(rows))
+          return kept
+
+- id: clean-add-tests
+  split: test
+  title: "Tests for the shipping fee"
+  body: "Adds unit tests; no production code changes."
+  bugs: []
+  before:
+    tests/__init__.py: ""
+  after:
+    tests/__init__.py: ""
+    tests/test_shipping.py: |
+      import pytest
+
+      from checkout.shipping import FLAT_SHIPPING, FREE_SHIPPING_FROM, shipping_fee
+
+
+      def test_small_order_pays_flat_fee():
+          assert shipping_fee(FREE_SHIPPING_FROM - 1) == FLAT_SHIPPING
+
+
+      def test_threshold_ships_free():
+          assert shipping_fee(FREE_SHIPPING_FROM) == 0
+
+
+      @pytest.mark.parametrize("total", [1000, 5000, 1e6])
+      def test_large_orders_ship_free(total):
+          assert shipping_fee(total) == 0
+
+- id: clean-timeout-raise
+  split: test
+  title: "Harden the geocoding call"
+  body: "Adds a timeout and error handling to the maps API call."
+  bugs: []
+  before:
+    geo/lookup.py: |
+      import requests
+
+      GEOCODE_URL = "https://maps.example.com/geocode"
+
+
+      def geocode(address: str, key: str):
+          r = requests.get(GEOCODE_URL, params={"q": address, "key": key})
+          return r.json()["results"][0]["location"]
+  after:
+    geo/lookup.py: |
+      import requests
+
+      GEOCODE_URL = "https://maps.example.com/geocode"
+
+
+      def geocode(address: str, key: str) -> dict | None:
+          r = requests.get(GEOCODE_URL, params={"q": address, "key": key}, timeout=10)
+          r.raise_for_status()
+          results = r.json().get("results") or []
+          return results[0]["location"] if results else None
+
+- id: clean-lru-cache
+  split: test
+  title: "Cache the slugify helper"
+  body: "slugify is called thousands of times per page render with repeated titles."
+  bugs: []
+  before:
+    blog/text.py: |
+      import re
+      import unicodedata
+
+
+      def slugify(title: str) -> str:
+          text = unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode()
+          return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+  after:
+    blog/text.py: |
+      import re
+      import unicodedata
+      from functools import lru_cache
+
+      _NON_ALNUM = re.compile(r"[^a-z0-9]+")
+
+
+      @lru_cache(maxsize=4096)
+      def slugify(title: str) -> str:
+          text = unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode()
+          return _NON_ALNUM.sub("-", text.lower()).strip("-")
+
+- id: clean-env-config
+  split: test
+  title: "Read settings from the environment"
+  body: "Moves hard-coded settings to env vars with safe defaults; secrets have no default."
+  bugs: []
+  before:
+    app/settings.py: |
+      DEBUG = False
+      PAGE_SIZE = 20
+  after:
+    app/settings.py: |
+      import os
+
+
+      def _bool(name: str, default: bool) -> bool:
+          return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes"}
+
+
+      DEBUG = _bool("APP_DEBUG", False)
+      PAGE_SIZE = int(os.getenv("APP_PAGE_SIZE", "20"))
+      DATABASE_URL = os.environ["DATABASE_URL"]
+      SENTRY_DSN = os.getenv("SENTRY_DSN")
+
+- id: clean-dataclass-refactor
+  split: test
+  title: "Use a dataclass for line items"
+  body: "Replaces dicts with a small dataclass; behaviour unchanged."
+  bugs: []
+  before:
+    billing/lines.py: |
+      def line_total(line):
+          return line["qty"] * line["unit_price"] * (1 - line.get("discount", 0))
+  after:
+    billing/lines.py: |
+      from dataclasses import dataclass
+
+
+      @dataclass(frozen=True)
+      class LineItem:
+          sku: str
+          qty: int
+          unit_price: float
+          discount: float = 0.0
+
+          def __post_init__(self) -> None:
+              if self.qty < 0:
+                  raise ValueError("qty must not be negative")
+              if not 0 <= self.discount < 1:
+                  raise ValueError("discount must be in [0, 1)")
+
+
+      def line_total(line: LineItem) -> float:
+          return line.qty * line.unit_price * (1 - line.discount)
