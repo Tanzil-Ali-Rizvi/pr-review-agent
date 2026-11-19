@@ -120,6 +120,15 @@ def run_bandit(files: dict[str, str]) -> list[Evidence]:
     return out
 
 
+def is_test_file(path: str) -> bool:
+    name = Path(path).name
+    return name.startswith("test_") or name.endswith("_test.py") or "tests/" in path or path.startswith("test/")
+
+
+# `assert` is how tests check things; the usual bandit/ruff setup ignores it there.
+TEST_ONLY_IGNORE = {"S101", "B101"}
+
+
 def analyse(files: dict[str, str], changed: dict[str, set[int]]) -> list[Evidence]:
     """Run both tools on the new versions of the changed Python files; keep findings on changed lines only."""
     py = {p: c for p, c in files.items() if p.endswith(".py")}
@@ -127,6 +136,8 @@ def analyse(files: dict[str, str], changed: dict[str, set[int]]) -> list[Evidenc
     seen, out = set(), []
     for e in sorted(found, key=lambda e: (e.path, e.line, e.tool)):
         if e.line not in changed.get(e.path, set()):
+            continue
+        if e.code in TEST_ONLY_IGNORE and is_test_file(e.path):
             continue
         key = (e.path, e.line, e.code)
         if key not in seen:
