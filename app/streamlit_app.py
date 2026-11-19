@@ -57,8 +57,14 @@ def cases():
 
 
 @st.cache_resource
-def shared_llm():
+def _llm_for(key_fingerprint: str):
     return from_env()
+
+
+def shared_llm():
+    """Cached per key, so a key added to the app's secrets later is picked up without a reboot."""
+    key = os.getenv("GROQ_API_KEY", "") + os.getenv("LLM_BASE_URL", "")
+    return _llm_for(hashlib.sha1(key.encode()).hexdigest()[:8] if key else "")
 
 
 @st.cache_resource
