@@ -1,0 +1,478 @@
+{
+ "summary": {
+  "cases": 8,
+  "bug_cases": 6,
+  "clean_cases": 2,
+  "systems": {
+   "linters": {
+    "recall": 0.5,
+    "caught": 3,
+    "high_recall": 0.667,
+    "precision": 0.75,
+    "comments": 4,
+    "false_alarms": 1,
+    "clean_prs_flagged": 1,
+    "by_category": {
+     "security": {
+      "n": 2,
+      "caught": 2
+     },
+     "correctness": {
+      "n": 2,
+      "caught": 0
+     },
+     "performance": {
+      "n": 1,
+      "caught": 0
+     },
+     "reliability": {
+      "n": 1,
+      "caught": 1
+     }
+    }
+   },
+   "llm": {
+    "recall": 1.0,
+    "caught": 6,
+    "high_recall": 1.0,
+    "precision": 0.8,
+    "comments": 10,
+    "false_alarms": 2,
+    "clean_prs_flagged": 2,
+    "by_category": {
+     "security": {
+      "n": 2,
+      "caught": 2
+     },
+     "correctness": {
+      "n": 2,
+      "caught": 2
+     },
+     "performance": {
+      "n": 1,
+      "caught": 1
+     },
+     "reliability": {
+      "n": 1,
+      "caught": 1
+     }
+    }
+   },
+   "llm+verify": {
+    "recall": 1.0,
+    "caught": 6,
+    "high_recall": 1.0,
+    "precision": 0.8,
+    "comments": 10,
+    "false_alarms": 2,
+    "clean_prs_flagged": 2,
+    "by_category": {
+     "security": {
+      "n": 2,
+      "caught": 2
+     },
+     "correctness": {
+      "n": 2,
+      "caught": 2
+     },
+     "performance": {
+      "n": 1,
+      "caught": 1
+     },
+     "reliability": {
+      "n": 1,
+      "caught": 1
+     }
+    }
+   }
+  },
+  "cost_usd": 0.0053,
+  "cost_per_pr": 0.00066,
+  "tokens": 15904,
+  "llm_ms_p50": 2348,
+  "model": "openai/gpt-oss-120b (Groq) via llm-gateway",
+  "split": "dev"
+ },
+ "rows": [
+  {
+   "id": "clean-rename-docstring",
+   "split": "dev",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "billing/invoice.py",
+      "line": 3,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "KeyError on missing dict fields",
+      "source": "llm",
+      "verdict": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "billing/invoice.py",
+      "line": 3,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "KeyError on missing dict fields",
+      "source": "llm",
+      "verdict": "confirmed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1628,
+   "cost_usd": 0.000534,
+   "llm_ms": 1987.3,
+   "wall_ms": 2132.3,
+   "errors": []
+  },
+  {
+   "id": "clean-parameterised-sql",
+   "split": "dev",
+   "kind": "clean",
+   "category": "clean",
+   "severity": "",
+   "systems": {
+    "linters": [
+     {
+      "path": "billing/queries.py",
+      "line": 18,
+      "severity": "medium",
+      "category": "security",
+      "title": "Possible SQL injection vector through string-based query construction.",
+      "source": "linter",
+      "verdict": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "billing/queries.py",
+      "line": 19,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Indentation error causes SyntaxError",
+      "source": "llm",
+      "verdict": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "billing/queries.py",
+      "line": 19,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Indentation error causes SyntaxError",
+      "source": "llm",
+      "verdict": "confirmed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2621,
+   "cost_usd": 0.00093,
+   "llm_ms": 3050.6,
+   "wall_ms": 3187.3,
+   "errors": []
+  },
+  {
+   "id": "cor-pagination-off-by-one",
+   "split": "dev",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "orders/listing.py",
+      "line": 6,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Off‑by‑one slice drops last item",
+      "source": "llm",
+      "verdict": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "orders/listing.py",
+      "line": 6,
+      "severity": "medium",
+      "category": "correctness",
+      "title": "Off‑by‑one slice drops last item",
+      "source": "llm",
+      "verdict": "confirmed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1681,
+   "cost_usd": 0.000499,
+   "llm_ms": 2083.2,
+   "wall_ms": 2220.2,
+   "errors": []
+  },
+  {
+   "id": "cor-inverted-discount",
+   "split": "dev",
+   "kind": "bug",
+   "category": "correctness",
+   "severity": "high",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "checkout/shipping.py",
+      "line": 6,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Free shipping condition reversed",
+      "source": "llm",
+      "verdict": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "checkout/shipping.py",
+      "line": 6,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Free shipping condition reversed",
+      "source": "llm",
+      "verdict": "confirmed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1591,
+   "cost_usd": 0.000512,
+   "llm_ms": 1914.6,
+   "wall_ms": 2053.2,
+   "errors": []
+  },
+  {
+   "id": "perf-n-plus-one",
+   "split": "dev",
+   "kind": "bug",
+   "category": "performance",
+   "severity": "medium",
+   "systems": {
+    "linters": [],
+    "llm": [
+     {
+      "path": "exports/orders_csv.py",
+      "line": 11,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Dict-style row access may crash",
+      "source": "llm",
+      "verdict": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "exports/orders_csv.py",
+      "line": 11,
+      "severity": "high",
+      "category": "correctness",
+      "title": "Dict-style row access may crash",
+      "source": "llm",
+      "verdict": "confirmed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2199,
+   "cost_usd": 0.000777,
+   "llm_ms": 2613.8,
+   "wall_ms": 2753.8,
+   "errors": []
+  },
+  {
+   "id": "rel-no-timeout",
+   "split": "dev",
+   "kind": "bug",
+   "category": "reliability",
+   "severity": "medium",
+   "systems": {
+    "linters": [
+     {
+      "path": "jobs/rates.py",
+      "line": 11,
+      "severity": "medium",
+      "category": "security",
+      "title": "Call to requests without timeout",
+      "source": "linter",
+      "verdict": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "jobs/rates.py",
+      "line": 11,
+      "severity": "medium",
+      "category": "performance",
+      "title": "requests call lacks timeout",
+      "source": "llm",
+      "verdict": ""
+     },
+     {
+      "path": "jobs/rates.py",
+      "line": 13,
+      "severity": "high",
+      "category": "correctness",
+      "title": "unvalidated payload may raise KeyError",
+      "source": "llm",
+      "verdict": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "jobs/rates.py",
+      "line": 11,
+      "severity": "medium",
+      "category": "performance",
+      "title": "requests call lacks timeout",
+      "source": "llm",
+      "verdict": "confirmed"
+     },
+     {
+      "path": "jobs/rates.py",
+      "line": 13,
+      "severity": "high",
+      "category": "correctness",
+      "title": "unvalidated payload may raise KeyError",
+      "source": "llm",
+      "verdict": "confirmed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1925,
+   "cost_usd": 0.000613,
+   "llm_ms": 2077.8,
+   "wall_ms": 2215.9,
+   "errors": []
+  },
+  {
+   "id": "sec-sql-search",
+   "split": "dev",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "app/users/repo.py",
+      "line": 10,
+      "severity": "medium",
+      "category": "security",
+      "title": "Possible SQL injection vector through string-based query construction.",
+      "source": "linter",
+      "verdict": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "app/users/repo.py",
+      "line": 10,
+      "severity": "high",
+      "category": "security",
+      "title": "SQL injection via prefix",
+      "source": "llm",
+      "verdict": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "app/users/repo.py",
+      "line": 10,
+      "severity": "high",
+      "category": "security",
+      "title": "SQL injection via prefix",
+      "source": "llm",
+      "verdict": "confirmed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 1690,
+   "cost_usd": 0.000465,
+   "llm_ms": 5610.8,
+   "wall_ms": 5790.9,
+   "errors": []
+  },
+  {
+   "id": "sec-yaml-load",
+   "split": "dev",
+   "kind": "bug",
+   "category": "security",
+   "severity": "high",
+   "systems": {
+    "linters": [
+     {
+      "path": "pipelines/config.py",
+      "line": 8,
+      "severity": "high",
+      "category": "security",
+      "title": "Probable use of unsafe loader `Loader` with `yaml.load`. Allows instantiation of arbitrary objects. Consider `yaml.safe_",
+      "source": "linter",
+      "verdict": ""
+     }
+    ],
+    "llm": [
+     {
+      "path": "pipelines/config.py",
+      "line": 8,
+      "severity": "high",
+      "category": "security",
+      "title": "Unsafe yaml.load usage",
+      "source": "llm",
+      "verdict": ""
+     },
+     {
+      "path": "pipelines/config.py",
+      "line": 10,
+      "severity": "high",
+      "category": "reliability",
+      "title": "Indentation error causes crash",
+      "source": "llm",
+      "verdict": ""
+     }
+    ],
+    "llm+verify": [
+     {
+      "path": "pipelines/config.py",
+      "line": 8,
+      "severity": "high",
+      "category": "security",
+      "title": "Unsafe yaml.load usage",
+      "source": "llm",
+      "verdict": "confirmed"
+     },
+     {
+      "path": "pipelines/config.py",
+      "line": 10,
+      "severity": "high",
+      "category": "reliability",
+      "title": "Indentation error causes crash",
+      "source": "llm",
+      "verdict": "confirmed"
+     }
+    ]
+   },
+   "llm_calls": 2,
+   "tokens": 2569,
+   "cost_usd": 0.001,
+   "llm_ms": 9611.6,
+   "wall_ms": 9756.5,
+   "errors": []
+  }
+ ]
+}
